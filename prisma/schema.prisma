@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model AuthUser {
+  id             String           @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  password       String
+  username       String @unique
+  user_workspace User_Workspace[]
+
+  @@map("auth_user")
+}
+
+model Workspace {
+  id                String             @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_content Workspace_Content?
+  user_workspace    User_Workspace[]
+  name              String
+  key               String             @unique
+
+  @@map("workspace")
+}
+
+// Workspace_Conten? is questionable but we will continue for now because thats what the errror message wanted
+
+model Content {
+  id                String             @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_content Workspace_Content?
+  headers           Header[]
+  textareas         Textarea[]
+  images            Image[]
+
+  @@map("content")
+}
+
+model Header {
+  id         String  @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content_id String
+  content    Content @relation(fields: [content_id], references: [id], onDelete: Cascade)
+  text       String
+
+  @@index([content_id])
+  @@map("header")
+}
+
+model Textarea {
+  id         String  @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content_id String
+  content    Content @relation(fields: [content_id], references: [id], onDelete: Cascade)
+  text       String
+
+  @@index([content_id])
+  @@map("textarea")
+}
+
+model Image {
+  id         String  @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content_id String
+  content    Content @relation(fields: [content_id], references: [id], onDelete: Cascade)
+  url        String
+
+  @@index([content_id])
+  @@map("image")
+}
+
+model User_Workspace {
+  id           String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String
+  workspace_id String @unique
+  user         AuthUser  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  workspace    Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  @@index([user_id])
+  @@map("user_workspace")
+}
+
+model Workspace_Content {
+  id           String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id String    @unique
+  content_id   String?   @unique
+  workspace    Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  content      Content?  @relation(fields: [content_id], references: [id], onDelete: Cascade)
+
+  @@index([content_id])
+  @@map("workspace_content")
+}
