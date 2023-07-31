@@ -78,7 +78,17 @@ export async function getWorkspace({ id }: Workspace) {
         id
       },
       include: {
-        workspace_content: {  include: { content: true }},
+        workspace_content: {
+          include: {
+            content: {
+              include: {
+                headers: true,
+                textareas: true,
+                images: true
+              }
+            }
+          }
+        },
         user_workspace: true,
       }
     })
