@@ -1,4 +1,4 @@
-import { createWorkspace, getWorkspace, updateAllContent, updateHeaders, updateImages, updateTextareas } from '../querys/workspace'
+import { createWorkspace, deleteWorkspace, getWorkspace, updateAllContent, updateHeaders, updateImages, updateTextareas } from '../querys/workspace'
 import express from 'express'
 import { validateWorkspaceKey } from '../middlewares/validate'
 import { AuthenticatedRequest } from '../middlewares/validate'
@@ -27,15 +27,11 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
   }
 })
 
-// Make a endpoint where the user is able to update their api key, or generate a new one
-
-// 403385ef-8502-403c-955e-1bd7c6f2d91b:testworkspace1
-
 router.post('/update', validateWorkspaceKey, async (req, res) => {
   try {
     const { id, content, content_type }: Workspace = req.body.workspace
     const workspace = await getWorkspace({ id })
-    console.log(workspace?.workspace_content)
+    console.log(workspace.content)
 
     if (content_type) {
       const updateWorkspaceAction = updateWorkspaceMap[content_type]
@@ -55,10 +51,19 @@ router.get('/retrieve/:id', validateWorkspaceKey, async (req, res) => {
     res.send(workspace)
   } catch (err) {
     console.log(err)
-    res.send('Error Retrieving workspace!')
+    res.json({ message: `${err}` })
   }
 })
 
+router.get('/delete/:id', validateWorkspaceKey, async (req, res) => {
+  try {
+    const id: string = req.params.id
+    await deleteWorkspace(id)
+    res.json({ message: `Succesfully deleted workspace ${id}` })
+  } catch (err) {
+    res.json({ message: `${err}` })
+  }
+})
 
 // implement all CRUD for workspaces
 //
