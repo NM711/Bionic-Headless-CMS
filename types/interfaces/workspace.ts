@@ -16,10 +16,16 @@ export interface Image {
   // maybe add byte data later idk
 }
 
-export interface Workspace {
+export interface Content {
   id?: string
-  name?: string
   headers?: Header[]
   textareas?: Textarea[]
   images?: Image[]
+}
+
+export interface Workspace {
+  id?: string
+  name?: string
+  content?: Content
+  content_type?: string
 }

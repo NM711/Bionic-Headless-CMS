@@ -55,25 +55,26 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
   }
 
   try {
-    const key: string = req.query.key as string
-
-    const keyValidationMap: { [key: string]: Function } = {
-    'GET': async (key: string) => {
+    const keyValidationMap: { [method: string]: Function } = {
+    'GET': async () => {
+      const key: string = req.query.key as string
       const id: string = req.params.id
       await compareIdAndHash(id, key)
     },
-    'POST': async (key: string) => {
+    'POST': async () => {
+      const key: string = req.body.key as string
+      if (!req.body.workspace) throw new Error('No workspace body found this field is required!')
       const { id }: Workspace = req.body.workspace
       if (!id) throw new Error('Project id field is missing!')
       await compareIdAndHash(id, key)
     }
   }
     const keyValidationAction = keyValidationMap[req.method]
-    await keyValidationAction(key)
+    await keyValidationAction()
 
     } catch (err) {
       console.log(err)
-      res.send('Error Validating Key!')
+      res.json({ message: `${err}` })
   }
 
 }

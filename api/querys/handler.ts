@@ -5,7 +5,7 @@ export async function queryHandler (message: string, func: any) {
     return { error: null, returned }
   } catch (e) {
     console.log(`Query Handler Error: ${e}`)
-    
+
     return { error, returned: null }
   }
 }

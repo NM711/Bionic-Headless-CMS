@@ -1,7 +1,7 @@
 import { promisify } from 'util'
 import { client } from "./client";
 import { queryHandler } from './handler';
-import { Workspace } from '../../types/interfaces/workspace';
+import { Workspace, Content } from '../../types/interfaces/workspace';
 import { User } from '../../types/interfaces/user';
 import uuid4 from "uuid4";
 import bcrypt from 'bcrypt'
@@ -28,6 +28,11 @@ export async function createWorkspace({ id }: User, { name }: Workspace) {
             key: hash,
             workspace_content: {
               create: {
+                content: {
+                  create: {
+
+                  }
+                }
               }
             }
           }
@@ -85,83 +90,87 @@ export async function getWorkspace({ id }: Workspace) {
   return returned
 }
 
-async function updateWorkspaceContent(workspaceId: string, dataObj: any) {
+async function updateWorkspaceContent({ id }: Workspace, dataObj: Object) {
   await client.workspace_Content.update({
     where: {
-      workspace_id: workspaceId
+      workspace_id: id
     },
     data: dataObj
   })
 }
 
-export async function updateAllContent(workspaceId: string, headers: string[], textareas: string[], images: string[]) {
-  try {
-    await updateWorkspaceContent(workspaceId, {
+export async function updateAllContent({ id }: Workspace, { headers, textareas, images }: Content) {
+  const { error } = await queryHandler('There has been an error attempting to update all of the content fields!', async () => {
+    await updateWorkspaceContent({ id }, {
       content: {
         update: {
           headers: {
             createMany: {
-              data: headers.map(text => ({ text }))
+              data: headers!.map(text => ({ text }))
             },
           },
           textareas: {
             createMany: {
-              data: textareas.map(text => ({ text }))
+              data: textareas!.map(text => ({ text }))
             }
           },
           images: {
             createMany: {
-              data: images.map(url => ({ url }))
+              data: images!.map(url => ({ url }))
             },
           },
         },
       }
     })
-  } catch (err) {
-      console.log(err)
-      throw new Error('Something Went Wrong On Content Creation/Update!')
-  }
+  })
 
+  if (error) throw error
 }
 
-async function createOneContentType(workspaceId: string, propQuery: any, type: string) {
-  await updateWorkspaceContent(workspaceId, {
+async function createOneContentType({ id }: Workspace, propQuery: any, contentType: string) {
+  await updateWorkspaceContent({ id }, {
     content: {
       update: propQuery
     }
   })
 
-  console.log(`Created ${type}`)
+  console.log(`Created ${contentType}`)
 }
 // add conditionals within to validate arr, or do it in the higher order function
-export async function updateHeaders(workspaceId: string, headers: string[]) {
-  await createOneContentType(workspaceId, {
-    headers: {
-      createMany: {
-        data: headers.map(text => ({ text }))
+export async function updateHeaders ({ id }: Workspace, { headers }: Content) {
+  await queryHandler('Failed to update headers!', async () => {
+    await createOneContentType({ id }, {
+      headers: {
+        createMany: {
+          data: headers!.map(text => ({ text }))
+        }
       }
-    }
-  }, 'Headers')
+    }, 'Headers')
+  })
 }
 
-export async function updateTextareas(workspaceId: string, textareas: string[]) {
-  await createOneContentType(workspaceId, {
-    textareas: {
-      createMany: {
-        data: textareas.map(text => ({ text }))
+export async function updateTextareas ({ id }: Workspace, { textareas }: Content) {
+  await queryHandler('Failed to update headers!', async () => {
+    await createOneContentType({ id }, {
+      textareas: {
+        createMany: {
+          data: textareas!.map(text => ({ text }))
+        }
       }
-    }
-  }, 'Textareas')
+    }, 'Textareas')
+  })
 }
 
-export async function updateImages(workspaceId: string, images: string[]) {
-  await createOneContentType(workspaceId, {
-    images: {
-      createMany: {
-        data: images.map(url => ({ url }))
+export async function updateImages ({ id }: Workspace, { images }: Content) {
+  await queryHandler('Failed to update headers!', async () => {
+    await createOneContentType({ id }, {
+      images: {
+        createMany: {
+          data: images!.map(url => ({ url }))
+        }
       }
-    }
-  }, 'Images')
+    }, 'Images')
+  })
 }
 
 export async function getAllUserWorkspaces(userId: string) {
