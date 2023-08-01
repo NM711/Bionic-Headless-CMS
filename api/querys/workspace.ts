@@ -1,7 +1,7 @@
 import { promisify } from 'util'
 import { client } from "./client";
 import { queryHandler } from './handler';
-import { Workspace, Content } from '../../types/interfaces/workspace';
+import { Workspace, Content, Image } from '../../types/interfaces/workspace';
 import { User } from '../../types/interfaces/user';
 import uuid4 from "uuid4";
 import bcrypt from 'bcrypt'
@@ -207,5 +207,5 @@ export async function deleteWorkspace (id: string) {
     })
 
     if (error) throw error
-  }) 
+  })
 }

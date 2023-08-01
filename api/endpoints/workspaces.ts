@@ -29,13 +29,17 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
 
 router.post('/update', validateWorkspaceKey, async (req, res) => {
   try {
-    const { id, content, content_type }: Workspace = req.body.workspace
+    const { id, content, content_type, content_operation }: Workspace = req.body.workspace
     const workspace = await getWorkspace({ id })
     console.log(workspace.content)
 
-    if (content_type) {
+    if (content_type && content_operation === 'update/add') {
       const updateWorkspaceAction = updateWorkspaceMap[content_type]
       await updateWorkspaceAction({ id, content })
+    }
+
+    if (content_type && content_operation === 'remove') {
+
     }
 
     res.send('Updated Succesfully!')

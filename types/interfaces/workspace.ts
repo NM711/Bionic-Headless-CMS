@@ -28,4 +28,5 @@ export interface Workspace {
   name?: string
   content?: Content
   content_type?: string
+  content_operation?: string
 }
