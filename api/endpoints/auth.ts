@@ -12,15 +12,16 @@ export const router = express.Router()
 router.post("/sign-up", async (req, res) => {
   const username = req.body.username
   const password = req.body.password
+  console.log(username, password)
   bcrypt.hash(password, 12, async (err, hash) => {
     try {
       // this way i can catch the bcrypt err
       if (err) throw new Error(err.message)
       await createUser(username, hash)
-      res.redirect(200, "/sign-in")
+      res.json({ message: `Succesfully created user ${username}` })
     } catch (err) {
       console.log("Error When Creating User!", err)
-      res.send("Error On User Creation!")
+      res.status(500).json({ message: "Error on User Creation!" })
     }
   })
 })
@@ -28,19 +29,19 @@ router.post("/sign-up", async (req, res) => {
 
 router.post('/sign-in', async (req: AuthenticatedRequest, res) => {
   try {
-    console.log(req.token)
     const { user } = await getUserByUsername(req.body.username)
     if (user) {
       const isValid: boolean = bcrypt.compareSync(req.body.password, user.password)
 
       if (isValid) {
         // generate a jwt
+        console.log(`User id: ${user.id}, username: ${user.username} signed in! `)
         res.json({ token: generateJWT(user) })
       } else throw new Error
     }
   } catch (err) {
       console.log(err)
-      res.send(`Somethin Went Wrong Check Your Credentials and Try Again!`)
+      res.status(500).json({message: `Somethin Went Wrong Check Your Credentials and Try Again!`})
   }
 })
 
