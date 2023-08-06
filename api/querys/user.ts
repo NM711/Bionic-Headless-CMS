@@ -1,5 +1,6 @@
 import { client } from "./client";
-
+import { queryHandler } from "./handler";
+import { Workspace } from "../../types/interfaces/workspace"
 export async function createUser (username: string, password: string) {
   await client.authUser.create({
       data: {
@@ -36,4 +37,32 @@ export async function removeUser (id: string) {
     }
   })
   console.log(`User With Id Of ${id} Removed!`)
+}
+
+export async function getAllUserData ({ id }: Workspace) {
+  const { error, returned } = await queryHandler('Failed to retrieve user data!', async () => {
+    const user = await client.authUser.findUnique({
+      where: {
+        id
+      },
+      select: {
+        username: true,
+        user_workspace: {
+          select: {
+            workspace: {
+              select: {
+              content: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    return user
+  })
+
+  if (error) throw error
+
+  return returned
 }

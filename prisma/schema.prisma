@@ -25,7 +25,8 @@ model Workspace {
   content Content?
   user_workspace    User_Workspace[]
   name              String
-  key               String             @unique
+  key_constraint    Boolean @default(false)
+  key               String?            @unique
 
   @@map("workspace")
 }

@@ -26,6 +26,7 @@ export interface Content {
 export interface Workspace {
   id?: string
   name?: string
+  key_constraint?: boolean
   content?: Content
   content_type?: string
   content_operation?: string

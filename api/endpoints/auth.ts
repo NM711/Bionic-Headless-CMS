@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt'
-import { createUser, getUserByUsername, removeUser } from '../querys/user'
+import { createUser, getAllUserData, getUserByUsername, removeUser } from '../querys/user'
 import { generateJWT } from '../functions/authenthication/tokens'
 import express from 'express'
 import { AuthenticatedRequest, isAuth, attachCurrentUser } from '../middlewares/validate'
@@ -67,3 +67,14 @@ router.post('/delete', isAuth, attachCurrentUser, async (req: AuthenticatedReque
   }
 })
 // Allow user to change account information when session is active, or when he is logged in.
+router.get('/retrieve', isAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { data } = req.token
+    const id = data.id
+    const user = await getAllUserData({ id })
+    res.json(user)
+  } catch (e) {
+    console.log(e)
+    res.json({ error: 'Error retrieving user data!' })
+  }
+})

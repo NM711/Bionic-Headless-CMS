@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { getUserById } from '../querys/user'
-import { getWorkspaceHash } from '../querys/workspace'
+import { getWorkspaceHash, retrieveKeyConstraint } from '../querys/workspace'
 import bcrypt from 'bcrypt'
 import * as jwt from 'express-jwt'
 import 'dotenv/config'
@@ -59,6 +59,10 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
     'GET': async () => {
       const key: string = req.query.key as string
       const id: string = req.params.id
+      const { key_constraint } = await retrieveKeyConstraint({ id })
+      console.log(key_constraint, typeof key_constraint)
+      console.log(key_constraint)
+      if (!key_constraint) return next()
       await compareIdAndHash(id, key)
     },
     'POST': async () => {
@@ -66,6 +70,9 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
       if (!req.body.workspace) throw new Error('No workspace body found this field is required!')
       const { id }: Workspace = req.body.workspace
       if (!id) throw new Error('Project id field is missing!')
+      const { key_constraint } = await retrieveKeyConstraint({ id })
+      console.log(key_constraint, typeof key_constraint)
+      if (!key_constraint) return next()
       await compareIdAndHash(id, key)
     }
   }
