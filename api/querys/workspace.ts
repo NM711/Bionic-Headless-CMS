@@ -6,15 +6,37 @@ import { User } from '../../types/interfaces/user';
 import uuid4 from "uuid4";
 import bcrypt from 'bcrypt'
 
-export async function createWorkspace({ id }: User, { name }: Workspace) {
-
+export async function createWorkspace({ id }: User, { name, key_constraint }: Workspace) {
   if (name === undefined || name.length === 0) throw new Error("Workspace name is required!");
   if (id === undefined || id.length === 0) throw new Error('User id is required!')
   const { error, returned } = await queryHandler('Error On Workspace Creation!', async () => {
+    if (!key_constraint) {
+      await client.user_Workspace.create({
+        data: {
+          user: {
+            connect: {
+              id
+            },
+          },
+        workspace: {
+          create: {
+            name,
+            key_constraint,
+            content: {
+              create: {
+
+                }
+              }
+            }
+          }
+        }
+      })
+      console.log('Workspace with no key constraint created!')
+      return null
+    }
     const key = `${uuid4()}:${name.replace(/\s+/g, '-').toLowerCase()}`
     const asyncHash = promisify(bcrypt.hash)
     const hash = await asyncHash(key, 12)
-    console.log("Created Workspace")
     await client.user_Workspace.create({
       data: {
         user: {
@@ -25,6 +47,7 @@ export async function createWorkspace({ id }: User, { name }: Workspace) {
         workspace: {
           create: {
             name,
+            key_constraint,
             key: hash,
             content: {
               create: {
@@ -39,6 +62,26 @@ export async function createWorkspace({ id }: User, { name }: Workspace) {
     return key
   })
   if (error) throw error
+  return returned
+}
+
+
+export async function retrieveKeyConstraint ({ id }: Workspace) {
+  const { error, returned } = await queryHandler('Could not retrieve key constraint field!', async () => {
+   const keyConstraint = await client.workspace.findUnique({
+     where: {
+       id
+     },
+     select: {
+       key_constraint: true
+     }
+   })
+
+   return keyConstraint
+  })
+
+  if (error) throw error
+
   return returned
 }
 
