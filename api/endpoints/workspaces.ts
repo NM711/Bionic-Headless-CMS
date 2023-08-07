@@ -5,7 +5,8 @@ import { AuthenticatedRequest } from '../middlewares/validate'
 import { Workspace } from '../../types/interfaces/workspace'
 import { User } from '../../types/interfaces/user'
 import { updateWorkspaceMap } from '../functions/actions/workspace'
-import {isWorkspace} from '../../types/guards/workspace'
+import {isContent, isWorkspace} from '../../types/guards/workspace'
+import {addUserToWorkspace} from '../querys/user'
 
 export const router = express.Router()
 
@@ -29,17 +30,18 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
 
 router.post('/update', validateWorkspaceKey, async (req, res) => {
   try {
-    const { id, content, content_type, content_operation }: Workspace = req.body.workspace
-    const workspace = await getWorkspace({ id })
-    console.log(workspace.content)
+    const user: User = req.body.user 
+    const workspace: Workspace = req.body.workspace
 
-    if (content_type && content_operation === 'update/add') {
-      const updateWorkspaceAction = updateWorkspaceMap[content_type]
-      await updateWorkspaceAction({ id, content })
+    if (workspace.content_type && workspace.operation === 'update/add') {
+      isContent(workspace.content)
+      const updateWorkspaceAction = updateWorkspaceMap[workspace.content_type]
+      await updateWorkspaceAction(workspace)
     }
 
-    if (content_type && content_operation === 'remove') {
-
+    if (workspace.content_type && workspace.operation === 'add-user') {
+      isContent(workspace.content)
+      await addUserToWorkspace(user, workspace)
     }
 
     res.send('Updated Succesfully!')

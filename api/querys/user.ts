@@ -1,6 +1,7 @@
 import { client } from "./client";
 import { queryHandler } from "./handler";
 import { Workspace } from "../../types/interfaces/workspace"
+import {User} from "../../types/interfaces/user";
 export async function createUser (username: string, password: string) {
   await client.authUser.create({
       data: {
@@ -49,8 +50,12 @@ export async function getAllUserData ({ id }: Workspace) {
         username: true,
         user_workspace: {
           select: {
+            user_id: true,
             workspace: {
               select: {
+              id: true,
+              name: true,
+              user_workspace: true,
               content: true
               }
             }
@@ -60,6 +65,29 @@ export async function getAllUserData ({ id }: Workspace) {
     })
 
     return user
+  })
+
+  if (error) throw error
+
+  return returned
+}
+
+export async function addUserToWorkspace ({ username }: User, workspace: Workspace) {
+  const { error, returned } = await queryHandler('Failed to add user to workspace!', async () => {
+  // ignore for now
+  // @ts-ignore
+  const { user } = await getUserByUsername(username) as User
+  // had to do this instead of a conditional guard cos the underline wouldnt go away...
+  if (user.id && workspace.id) {
+    await client.user_Workspace.create({
+      data: {
+        user_id: user.id,
+        workspace_id: workspace.id
+      }
+    })
+    console.log(`${username} added to Workspace ${workspace.id}`)
+  } else throw new Error('Cant add user because fields are missing!')
+
   })
 
   if (error) throw error
