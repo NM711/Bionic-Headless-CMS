@@ -15,6 +15,8 @@ model AuthUser {
   id             String           @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   password       String
   username       String @unique
+  // implement below field later
+  //friend_code String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_workspace User_Workspace[]
 
   @@map("auth_user")
@@ -23,6 +25,7 @@ model AuthUser {
 model Workspace {
   id                String             @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   content Content?
+  creation_date DateTime @default(now())
   user_workspace    User_Workspace[]
   name              String
   key_constraint    Boolean @default(false)
@@ -77,9 +80,10 @@ model Image {
 model User_Workspace {
   id           String    @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id      String
-  workspace_id String @unique
-  user         AuthUser  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  workspace    Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-  @@index([user_id])
+  workspace_id String 
+  user         AuthUser  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  workspace    Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@index([user_id, workspace_id])
+  @@unique([user_id, workspace_id])
   @@map("user_workspace")
 }

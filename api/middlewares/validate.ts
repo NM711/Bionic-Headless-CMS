@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 import * as jwt from 'express-jwt'
 import 'dotenv/config'
 import { Workspace } from '../../types/interfaces/workspace'
+import { isWorkspace } from '../../types/guards/workspace'
 
 export interface AuthenticatedRequest extends Request {
   token?: any;
@@ -60,20 +61,18 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
       const key: string = req.query.key as string
       const id: string = req.params.id
       const { key_constraint } = await retrieveKeyConstraint({ id })
-      console.log(key_constraint, typeof key_constraint)
-      console.log(key_constraint)
       if (!key_constraint) return next()
       await compareIdAndHash(id, key)
     },
     'POST': async () => {
       const key: string = req.body.key as string
       if (!req.body.workspace) throw new Error('No workspace body found this field is required!')
-      const { id }: Workspace = req.body.workspace
-      if (!id) throw new Error('Project id field is missing!')
-      const { key_constraint } = await retrieveKeyConstraint({ id })
-      console.log(key_constraint, typeof key_constraint)
-      if (!key_constraint) return next()
-      await compareIdAndHash(id, key)
+      const workspace: Workspace = req.body.workspace
+      isWorkspace(workspace)
+      if (!workspace.id) throw new Error('Project id field is missing!')
+      const k = await retrieveKeyConstraint(workspace)
+      if (!k?.key_constraint) return next()
+      await compareIdAndHash(workspace.id, key)
     }
   }
     const keyValidationAction = keyValidationMap[req.method]

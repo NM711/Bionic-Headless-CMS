@@ -5,6 +5,8 @@ import { AuthenticatedRequest } from '../middlewares/validate'
 import { Workspace } from '../../types/interfaces/workspace'
 import { User } from '../../types/interfaces/user'
 import { updateWorkspaceMap } from '../functions/actions/workspace'
+import {isContent, isWorkspace} from '../../types/guards/workspace'
+import {addUserToWorkspace} from '../querys/user'
 
 export const router = express.Router()
 
@@ -12,33 +14,34 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.body.user) throw new Error('User field is missing, this field is required!')
     if (!req.body.workspace) throw new Error('Workspace field is missing, this field is required!')
+    const workspace: Workspace = req.body.workspace
     const { id }: User = req.body.user
-    const { name, key_constraint }: Workspace = req.body.workspace
-    if (!id || !name) throw new Error('There seems to be missing fields in the request body!')
-    const key = await createWorkspace({ id }, { name, key_constraint })
+    isWorkspace(workspace)
+    const key = await createWorkspace({ id }, workspace)
     if (!key) return res.json({ message: `Succesfully Created Workspace!` })
     res.json(
-        { message: `Succesfully Created Workspace ${name}, Your Key Is ${key} Make Sure You Save It!`,
+        { message: `Succesfully Created Workspace ${workspace.name}, Your Key Is ${key} Make Sure You Save It!`,
           key
         })
   } catch (err) {
-    res.json({ message: `${err}` })
+    res.json({ error: `${err}` })
   }
 })
 
 router.post('/update', validateWorkspaceKey, async (req, res) => {
   try {
-    const { id, content, content_type, content_operation }: Workspace = req.body.workspace
-    const workspace = await getWorkspace({ id })
-    console.log(workspace.content)
+    const user: User = req.body.user 
+    const workspace: Workspace = req.body.workspace
 
-    if (content_type && content_operation === 'update/add') {
-      const updateWorkspaceAction = updateWorkspaceMap[content_type]
-      await updateWorkspaceAction({ id, content })
+    if (workspace.content_type && workspace.operation === 'update/add') {
+      isContent(workspace.content)
+      const updateWorkspaceAction = updateWorkspaceMap[workspace.content_type]
+      await updateWorkspaceAction(workspace)
     }
 
-    if (content_type && content_operation === 'remove') {
-
+    if (workspace.content_type && workspace.operation === 'add-user') {
+      isContent(workspace.content)
+      await addUserToWorkspace(user, workspace)
     }
 
     res.send('Updated Succesfully!')
