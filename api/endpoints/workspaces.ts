@@ -1,6 +1,6 @@
 import { createWorkspace, deleteWorkspace, getWorkspace, updateAllContent, updateHeaders, updateImages, updateTextareas } from '../querys/workspace'
 import express from 'express'
-import { validateWorkspaceKey } from '../middlewares/validate'
+import { isAuth, validateWorkspaceKey } from '../middlewares/validate'
 import { AuthenticatedRequest } from '../middlewares/validate'
 import { Workspace } from '../../types/interfaces/workspace'
 import { User } from '../../types/interfaces/user'
@@ -12,12 +12,11 @@ export const router = express.Router()
 
 router.post('/create', async (req: AuthenticatedRequest, res) => {
   try {
-    if (!req.body.user) throw new Error('User field is missing, this field is required!')
     if (!req.body.workspace) throw new Error('Workspace field is missing, this field is required!')
     const workspace: Workspace = req.body.workspace
-    const { id }: User = req.body.user
+    const userId = req.user.user.id
     isWorkspace(workspace)
-    const key = await createWorkspace({ id }, workspace)
+    const key = await createWorkspace(userId, workspace)
     if (!key) return res.json({ message: `Succesfully Created Workspace!` })
     res.json(
         { message: `Succesfully Created Workspace ${workspace.name}, Your Key Is ${key} Make Sure You Save It!`,
@@ -44,30 +43,31 @@ router.post('/update', validateWorkspaceKey, async (req, res) => {
       await addUserToWorkspace(user, workspace)
     }
 
-    res.send('Updated Succesfully!')
+    res.json({ message: 'Updated Succesfully!'})
 }  catch (err) {
-    res.json({ message: `${err}` })
+    res.json({ error: `${err}` })
   }
 })
-
+// ask for user id when viewing, check if user is within the given workspace.
 router.get('/retrieve/:id', validateWorkspaceKey, async (req, res) => {
   try {
     const id: string = req.params.id
     const workspace = await getWorkspace({ id })
-    res.send(workspace)
+    res.json(workspace)
   } catch (err) {
     console.log(err)
-    res.json({ message: `${err}` })
+    res.json({ error: `${err}` })
   }
 })
 
-router.get('/delete/:id', validateWorkspaceKey, async (req, res) => {
+router.get('/delete/:id', validateWorkspaceKey, async (req: AuthenticatedRequest, res) => {
   try {
+    const userId = req.user.user.id
     const id: string = req.params.id
-    await deleteWorkspace(id)
+    await deleteWorkspace(id, userId)
     res.json({ message: `Succesfully deleted workspace ${id}` })
   } catch (err) {
-    res.json({ message: `${err}` })
+    res.json({ error: `${err}` })
   }
 })
 

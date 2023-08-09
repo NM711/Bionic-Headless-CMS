@@ -6,17 +6,22 @@ import { User } from '../../types/interfaces/user';
 import uuid4 from "uuid4";
 import bcrypt from 'bcrypt'
 
-export async function createWorkspace({ id }: User, { name, key_constraint }: Workspace) {
+export async function createWorkspace(userId: string, { name, key_constraint }: Workspace) {
   if (name === undefined || name.length === 0) throw new Error("Workspace name is required!");
-  if (id === undefined || id.length === 0) throw new Error('User id is required!')
+  if (userId === undefined || userId.length === 0) throw new Error('User id is required!')
   const { error, returned } = await queryHandler('Error On Workspace Creation!', async () => {
     if (!key_constraint) {
       await client.user_Workspace.create({
         data: {
           user: {
             connect: {
-              id
+              id: userId
             },
+          },
+          role: {
+            connect: {
+              name: "OWNER"
+            }
           },
         workspace: {
           create: {
@@ -41,7 +46,12 @@ export async function createWorkspace({ id }: User, { name, key_constraint }: Wo
       data: {
         user: {
           connect: {
-            id
+            id: userId
+          },
+        },
+        role: {
+          connect: {
+            name: "OWNER"
           },
         },
         workspace: {
@@ -84,13 +94,6 @@ export async function retrieveKeyConstraint ({ id }: Workspace) {
 
   return returned
 }
-
-// to add a extra layer of security we will implement a function that returns a single id
-// and another that returns everything related to the workspace
-
-// NOTE WORKSPACE IS RETURNING NULL BECAUSE PRISMA IS TRYING TO QUERY WITH A TYPE OF STRING AND NOT UUID
-// THIS COULD EXPLAIN MANY ISSUES BUT I AM NOT ENTIRELY SURE, FOR NOW I WILL CALL IT A NIGHT BUT IN THE MORNING
-// WE WILL FIX.
 
 export async function getWorkspaceHash({ id }: Workspace) {
   const { error, returned } = await queryHandler('Error Getting Workspace Hash', async () => {
@@ -241,14 +244,26 @@ export async function getAllUserWorkspaces (userId: string) {
 
 }
 
-export async function deleteWorkspace (id: string) {
+export async function deleteWorkspace (id: string, userId: string) {
   const { error } = await queryHandler('Error deleting workspace', async () => {
-    await client.workspace.delete({
+    await client.user_Workspace.delete({
       where: {
-        id,
+        user_id_workspace_id: {
+          user_id: userId,
+          workspace_id: id,
+        },
+        role_name: "OWNER"
       },
     })
 
-    if (error) throw error
+  await client.workspace.delete({
+    where: {
+      id
+     },
+    })
   })
+
+  if (error) throw error
+
+  console.log(`Workspace ${id} removed!`)
 }

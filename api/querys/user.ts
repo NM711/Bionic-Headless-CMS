@@ -81,6 +81,7 @@ export async function addUserToWorkspace ({ username }: User, workspace: Workspa
   if (user.id && workspace.id) {
     await client.user_Workspace.create({
       data: {
+        role_name: "COLLABORATOR",
         user_id: user.id,
         workspace_id: workspace.id
       }
