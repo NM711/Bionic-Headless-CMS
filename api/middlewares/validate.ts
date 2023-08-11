@@ -62,6 +62,7 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
       const id: string = req.params.id
       const k = await retrieveKeyConstraint({ id })
       if (!k?.key_constraint) return next()
+      console.log(`True key constraint found key_constraint: ${k.key_constraint}`)
       await compareIdAndHash(id, key)
     },
     'POST': async () => {

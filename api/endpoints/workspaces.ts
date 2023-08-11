@@ -5,8 +5,8 @@ import { AuthenticatedRequest } from '../middlewares/validate'
 import { Workspace } from '../../types/interfaces/workspace'
 import { User } from '../../types/interfaces/user'
 import { updateWorkspaceMap } from '../functions/actions/workspace'
-import {isContent, isWorkspace} from '../../types/guards/workspace'
-import {addUserToWorkspace} from '../querys/user'
+import { isContent, isWorkspace } from '../../types/guards/workspace'
+import { addUserToWorkspace } from '../querys/user'
 
 export const router = express.Router()
 

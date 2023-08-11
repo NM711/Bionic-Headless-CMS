@@ -54,9 +54,20 @@ export async function getAllUserData ({ id }: Workspace) {
             workspace: {
               select: {
               id: true,
+              creation_date: true,
               name: true,
-              user_workspace: true,
-              content: true
+              user_workspace: {
+                select: {
+                  user: {
+                    select: {
+                      username: true,
+                    }
+                  },
+                  role_name: true
+                },
+              },
+              key_constraint: true,
+              content: true,
               }
             }
           }
