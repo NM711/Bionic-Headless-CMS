@@ -2,7 +2,6 @@ import { promisify } from 'util'
 import { client } from "./client";
 import { queryHandler } from './handler';
 import { Workspace, Content, Image } from '../../types/interfaces/workspace';
-import { User } from '../../types/interfaces/user';
 import uuid4 from "uuid4";
 import bcrypt from 'bcrypt'
 
@@ -127,7 +126,15 @@ export async function getWorkspace({ id }: Workspace) {
             images: true
           }
         },
-        user_workspace: true,
+        user_workspace: {
+          include: {
+            user: {
+              select: {
+                username: true,
+              }
+            },
+          }
+        },
       }
     })
       return workspace
