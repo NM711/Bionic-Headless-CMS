@@ -55,17 +55,8 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
     next()
   }
 
-  try {
-    const keyValidationMap: { [method: string]: Function } = {
-    'GET': async () => {
-      const key: string = req.query.key as string
-      const id: string = req.params.id
-      const { key_constraint } = await retrieveKeyConstraint({ id })
-      if (!key_constraint) return next()
-      await compareIdAndHash(id, key)
-    },
-    'POST': async () => {
-      const key: string = req.body.key as string
+  async function validateKeyActionWithBody () {
+    const key: string = req.body.key as string
       if (!req.body.workspace) throw new Error('No workspace body found this field is required!')
       const workspace: Workspace = req.body.workspace
       isWorkspace(workspace)
@@ -73,7 +64,26 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
       const k = await retrieveKeyConstraint(workspace)
       if (!k?.key_constraint) return next()
       await compareIdAndHash(workspace.id, key)
-    }
+  }
+
+  async function validateKeyAction () {
+    const key: any = req.query.key
+    const id: any = req.query.id
+    console.log(id)
+    const k = await retrieveKeyConstraint({ id })
+    console.log(k)
+    if (!k?.key_constraint) return next()
+    console.log(`True key constraint found key_constraint: ${k.key_constraint}`)
+    await compareIdAndHash(id, key)
+  }
+
+  try {
+    const keyValidationMap: { [method: string]: Function } = {
+    'GET': validateKeyAction,
+    'DELETE': validateKeyAction,
+    'POST': validateKeyActionWithBody,
+    'PUT': validateKeyActionWithBody,
+    'PATCH': validateKeyActionWithBody
   }
     const keyValidationAction = keyValidationMap[req.method]
     await keyValidationAction()

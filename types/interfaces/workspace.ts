@@ -29,5 +29,5 @@ export interface Workspace {
   key_constraint?: boolean
   content?: Content
   content_type?: string
-  operation?: "update/add" | "remove" | "add-user" | "remove-user" | "none"
+  operation?: "update/add" | "remove" | "add-user" | "remove-user" | "change-user-role"
 }

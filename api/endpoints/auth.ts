@@ -45,14 +45,14 @@ router.post('/sign-in', async (req: AuthenticatedRequest, res) => {
   }
 })
 
-router.post('/sign-out', isAuth, attachCurrentUser, async (req: AuthenticatedRequest, res) => {
+router.get('/sign-out', isAuth, attachCurrentUser, async (req: AuthenticatedRequest, res) => {
   try {
     delete req.headers.authorization
     console.log(`Authorization Request Header Removed!`)
-    res.redirect('/sign-in')
+    res.json({ message: "Succesfully signed out!" })
   } catch (err) {
     console.log(err)
-    res.send(`Error on sign-out!`)
+    res.json({ error:"Error on sign-out!" })
   }
 })
 
@@ -60,10 +60,10 @@ router.post('/delete', isAuth, attachCurrentUser, async (req: AuthenticatedReque
   try {
     const { data } = req.token
     await removeUser(data.id)
-    res.status(200).redirect('/sign-up')
+    res.json({ message: "User succesfully removed!" })
   } catch (err) {
       console.log(err)
-      res.send(`Error Removing Account!`)
+      res.json({ error: "Error Removing Account!" })
   }
 })
 // Allow user to change account information when session is active, or when he is logged in.
