@@ -83,14 +83,15 @@ export async function getAllUserData ({ id }: Workspace) {
   return returned
 }
 
+// types are getting checked through the custom type guards ive implemented on the higher order, so in some of these
+// im forced to use ts ignore
+
 export async function addUserToWorkspace ({ username }: User, workspace: Workspace) {
-  const { error, returned } = await queryHandler('Failed to add user to workspace!', async () => {
-  // ignore for now
-  // @ts-ignore
-  const { user } = await getUserByUsername(username) as User
-  // had to do this instead of a conditional guard cos the underline wouldnt go away...
-  if (user.id && workspace.id) {
+  const { error } = await queryHandler('Failed to add user to workspace!', async () => {
+    // @ts-ignore
+    const { user } = await getUserByUsername(username)
     await client.user_Workspace.create({
+      // @ts-ignore
       data: {
         role_name: "COLLABORATOR",
         user_id: user.id,
@@ -98,11 +99,47 @@ export async function addUserToWorkspace ({ username }: User, workspace: Workspa
       }
     })
     console.log(`${username} added to Workspace ${workspace.id}`)
-  } else throw new Error('Cant add user because fields are missing!')
-
   })
 
   if (error) throw error
+}
 
-  return returned
+export async function removeUserFromWorkspace ({ username }: User, workspace: Workspace) {
+  const { error } = await queryHandler('Failed to remove user from workspace!', async () => {
+    // @ts-ignore
+    const { user } = await getUserByUsername(username)
+    await client.user_Workspace.delete({
+      where: {
+        user_id_workspace_id: {
+          user_id: user.id,
+          // @ts-ignore
+          workspace_id: workspace.id,
+        },
+      }
+    })
+  })
+
+  if (error) throw error
+}
+
+export async function updateUserWorkspaceRole ({ username, role }: User, workspace: Workspace) {
+  const { error } = await queryHandler('Failed to update user workspace role!', async () => {
+    // @ts-ignore
+    const { user } = await getUserByUsername(username)
+
+    await client.user_Workspace.update({
+      where: {
+        user_id_workspace_id: {
+          user_id: user.id,
+          // @ts-ignore
+          workspace_id: workspace.id
+        }
+      },
+      data: {
+        role_name: role
+      },
+    })
+  })
+
+  if (error) throw error
 }

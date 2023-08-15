@@ -1,12 +1,9 @@
-import { createWorkspace, deleteWorkspace, getWorkspace, updateAllContent, updateHeaders, updateImages, updateTextareas } from '../querys/workspace'
 import express from 'express'
-import { isAuth, validateWorkspaceKey } from '../middlewares/validate'
-import { AuthenticatedRequest } from '../middlewares/validate'
-import { Workspace } from '../../types/interfaces/workspace'
-import { User } from '../../types/interfaces/user'
-import { updateWorkspaceMap } from '../functions/actions/workspace'
-import { isContent, isWorkspace } from '../../types/guards/workspace'
-import { addUserToWorkspace } from '../querys/user'
+import { createWorkspace, deleteWorkspace, getWorkspace } from '../../querys/workspace'
+import { AuthenticatedRequest } from '../../middlewares/validate'
+import { Workspace } from '../../../types/interfaces/workspace'
+import { updateWorkspaceMap } from '../../functions/actions/workspace'
+import { isContent, isWorkspace } from '../../../types/guards/workspace'
 
 export const router = express.Router()
 
@@ -27,9 +24,8 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
   }
 })
 
-router.post('/update', validateWorkspaceKey, async (req, res) => {
+router.put('/update', async (req, res) => {
   try {
-    const user: User = req.body.user 
     const workspace: Workspace = req.body.workspace
 
     if (workspace.content_type && workspace.operation === 'update/add') {
@@ -37,22 +33,18 @@ router.post('/update', validateWorkspaceKey, async (req, res) => {
       const updateWorkspaceAction = updateWorkspaceMap[workspace.content_type]
       await updateWorkspaceAction(workspace)
     }
-
-    if (workspace.content_type && workspace.operation === 'add-user') {
-      isContent(workspace.content)
-      await addUserToWorkspace(user, workspace)
-    }
-
     res.json({ message: 'Updated Succesfully!'})
 }  catch (err) {
     res.json({ error: `${err}` })
   }
 })
+
 // ask for user id when viewing, check if user is within the given workspace.
-router.get('/retrieve/:id', validateWorkspaceKey, async (req, res) => {
+router.get('/retrieve', async (req, res) => {
   try {
-    const id: string = req.params.id
+    const id: any = req.query.id
     const workspace = await getWorkspace({ id })
+    if (!workspace) throw new Error('No workspace found!')
     res.json(workspace)
   } catch (err) {
     console.log(err)
@@ -60,17 +52,13 @@ router.get('/retrieve/:id', validateWorkspaceKey, async (req, res) => {
   }
 })
 
-router.get('/delete/:id', validateWorkspaceKey, async (req: AuthenticatedRequest, res) => {
+router.delete('/delete', async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user.user.id
-    const id: string = req.params.id
+    const id: any = req.query.id
     await deleteWorkspace(id, userId)
     res.json({ message: `Succesfully deleted workspace ${id}` })
   } catch (err) {
     res.json({ error: `${err}` })
   }
 })
-
-// implement all CRUD for workspaces
-//
-// view workspace content endpoint here aswell

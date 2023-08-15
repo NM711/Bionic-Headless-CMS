@@ -85,7 +85,6 @@ export async function retrieveKeyConstraint ({ id }: Workspace) {
        key_constraint: true
      }
    })
-
    return keyConstraint
   })
 
