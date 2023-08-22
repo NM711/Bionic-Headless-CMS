@@ -1,13 +1,14 @@
 import { promisify } from 'util'
 import { client } from "./client";
 import { queryHandler } from './handler';
-import { Workspace, Content, Image } from '../../types/interfaces/workspace';
+import type { Workspace, Content, Image } from '../../types/interfaces/workspace';
 import uuid4 from "uuid4";
 import bcrypt from 'bcrypt'
 
 export async function createWorkspace(userId: string, { name, key_constraint }: Workspace) {
-  if (name === undefined || name.length === 0) throw new Error("Workspace name is required!");
+  if (name === undefined || name.length === 0) throw new Error("Workspace name is required!")
   if (userId === undefined || userId.length === 0) throw new Error('User id is required!')
+
   const { error, returned } = await queryHandler('Error On Workspace Creation!', async () => {
     if (!key_constraint) {
       await client.user_Workspace.create({
@@ -25,12 +26,7 @@ export async function createWorkspace(userId: string, { name, key_constraint }: 
         workspace: {
           create: {
             name,
-            key_constraint,
-            content: {
-              create: {
-
-                }
-              }
+            key_constraint
             }
           }
         }
@@ -57,12 +53,7 @@ export async function createWorkspace(userId: string, { name, key_constraint }: 
           create: {
             name,
             key_constraint,
-            key: hash,
-            content: {
-              create: {
-
-              }
-            }
+            key: hash
           }
         }
       }
@@ -118,13 +109,7 @@ export async function getWorkspace({ id }: Workspace) {
         id
       },
       include: {
-        content: {
-          include: {
-            headers: true,
-            textareas: true,
-            images: true
-          }
-        },
+        collection: true,
         user_workspace: {
           include: {
             user: {
@@ -143,82 +128,7 @@ export async function getWorkspace({ id }: Workspace) {
 
   return returned
 }
-
-async function updateWorkspaceContent({ id }: Workspace, data: Object) {
-  await client.content.update({
-    where: {
-      workspace_id: id
-    },
-    data
-  })
-}
-
-export async function updateAllContent({ id }: Workspace, { headers, textareas, images }: Content) {
-  const { error } = await queryHandler('There has been an error attempting to update all of the content fields!', async () => {
-    await updateWorkspaceContent({ id }, {
-      headers: {
-        createMany: {
-          data: headers!.map(text => { text })
-        }
-      },
-      textareas: {
-        createMany: {
-          data: textareas!.map(text => ({ text }))
-        }
-      },
-      images: {
-        createMany: {
-          data: images!.map(url => ({ url }))
-        },
-      },
-    })
-  })
-
-  if (error) throw error
-}
-
 // add conditionals within to validate arr, or do it in the higher order function
-export async function updateHeaders ({ id }: Workspace, { headers }: Content) {
-  await queryHandler('Failed to update headers!', async () => {
-    await updateWorkspaceContent({ id }, {
-      headers: {
-        createMany: {
-          data: headers!.map(text => ({ text }))
-        }
-      }
-    })
-
-    console.log('Updated Headers!')
-  })
-}
-
-export async function updateTextareas ({ id }: Workspace, { textareas }: Content) {
-  await queryHandler('Failed to update headers!', async () => {
-    await updateWorkspaceContent({ id }, {
-      textareas: {
-        createMany: {
-          data: textareas!.map(text => ({ text }))
-        }
-      }
-    })
-
-    console.log('Updated Textareas')
-  })
-}
-
-export async function updateImages ({ id }: Workspace, { images }: Content) {
-  await queryHandler('Failed to update headers!', async () => {
-    await updateWorkspaceContent({ id }, {
-      images: {
-        createMany: {
-          data: images!.map(url => ({ url }))
-        }
-      }
-    })
-
-    console.log('Updated Images')
-  })
-}
 
 export async function getAllUserWorkspaces (userId: string) {
   const { error, returned } = await queryHandler('Error retrieving all workspaces!', async () => {
@@ -229,11 +139,15 @@ export async function getAllUserWorkspaces (userId: string) {
       include: {
         workspace: {
           include: {
-            content: {
+            collection: {
               include: {
-                headers: true,
-                textareas: true,
-                images: true
+                content: {
+                  include: {
+                    headers: true,
+                    textareas: true,
+                    images: true
+                  }
+                }
               }
             }
           }
@@ -247,7 +161,6 @@ export async function getAllUserWorkspaces (userId: string) {
   if (error) throw error
 
   return returned
-
 }
 
 export async function deleteWorkspace (id: string, userId: string) {

@@ -1,7 +1,8 @@
 import { client } from "./client";
 import { queryHandler } from "./handler";
-import { Workspace } from "../../types/interfaces/workspace"
-import {User} from "../../types/interfaces/user";
+import type { Workspace } from "../../types/interfaces/workspace"
+import type { User } from "../../types/interfaces/user"
+
 export async function createUser (username: string, password: string) {
   await client.authUser.create({
       data: {
@@ -67,7 +68,18 @@ export async function getAllUserData ({ id }: Workspace) {
                 },
               },
               key_constraint: true,
-              content: true,
+              collection: {
+                select: {
+                  id: true,
+                  content: {
+                    select: {
+                     images: true,
+                     textareas: true,
+                     headers: true,
+                    }
+                  }
+                }
+              },
               }
             }
           }

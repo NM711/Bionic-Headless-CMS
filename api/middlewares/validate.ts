@@ -1,11 +1,12 @@
-import { Request, Response, NextFunction } from 'express'
 import { getUserById } from '../querys/user'
 import { getWorkspaceHash, retrieveKeyConstraint } from '../querys/workspace'
 import bcrypt from 'bcrypt'
 import * as jwt from 'express-jwt'
 import 'dotenv/config'
-import { Workspace } from '../../types/interfaces/workspace'
 import { isWorkspace } from '../../types/guards/workspace'
+
+import type { Request, Response, NextFunction } from 'express'
+import type { Workspace } from '../../types/interfaces/workspace'
 
 export interface AuthenticatedRequest extends Request {
   token?: any;
