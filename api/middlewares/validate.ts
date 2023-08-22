@@ -1,11 +1,12 @@
-import { Request, Response, NextFunction } from 'express'
 import { getUserById } from '../querys/user'
 import { getWorkspaceHash, retrieveKeyConstraint } from '../querys/workspace'
 import bcrypt from 'bcrypt'
 import * as jwt from 'express-jwt'
 import 'dotenv/config'
-import { Workspace } from '../../types/interfaces/workspace'
 import { isWorkspace } from '../../types/guards/workspace'
+
+import type { Request, Response, NextFunction } from 'express'
+import type { Workspace } from '../../types/interfaces/workspace'
 
 export interface AuthenticatedRequest extends Request {
   token?: any;
@@ -56,11 +57,12 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
   }
 
   async function validateKeyActionWithBody () {
-    const key: string = req.body.key as string
-      if (!req.body.workspace) throw new Error('No workspace body found this field is required!')
+      if (req.path === "/create") return next()
+      const key: any = req.query.key
       const workspace: Workspace = req.body.workspace
+      if (!workspace) throw new Error('No workspace found in the body this field is required!')
       isWorkspace(workspace)
-      if (!workspace.id) throw new Error('Project id field is missing!')
+      if (!workspace.id) throw new Error('Workspace id field is missing!')
       const k = await retrieveKeyConstraint(workspace)
       if (!k?.key_constraint) return next()
       await compareIdAndHash(workspace.id, key)
@@ -69,9 +71,7 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
   async function validateKeyAction () {
     const key: any = req.query.key
     const id: any = req.query.id
-    console.log(id)
     const k = await retrieveKeyConstraint({ id })
-    console.log(k)
     if (!k?.key_constraint) return next()
     console.log(`True key constraint found key_constraint: ${k.key_constraint}`)
     await compareIdAndHash(id, key)

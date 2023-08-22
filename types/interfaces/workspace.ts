@@ -12,7 +12,7 @@ export interface Textarea {
 
 export interface Image {
   id?: string
-  url: string
+  byte: BinaryType
   // maybe add byte data later idk
 }
 
@@ -23,11 +23,21 @@ export interface Content {
   images?: Image[]
 }
 
+export type CollectionOperation = "update" | "add" | "remove" | "none"
+export type WorkspaceOperation = "add-user" | "remove-user" | "change-user-role" | "none"
+
+export interface Collection {
+  id?: string
+  name?: string
+  content_type?: string
+  content?: Content
+  operation?: CollectionOperation
+}
+
 export interface Workspace {
   id?: string
   name?: string
   key_constraint?: boolean
-  content?: Content
-  content_type?: string
-  operation?: "update/add" | "remove" | "add-user" | "remove-user" | "change-user-role"
+  collections?: Collection[] | Collection
+  operation?: WorkspaceOperation
 }

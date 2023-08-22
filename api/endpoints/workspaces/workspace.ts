@@ -1,9 +1,8 @@
 import express from 'express'
 import { createWorkspace, deleteWorkspace, getWorkspace } from '../../querys/workspace'
-import { AuthenticatedRequest } from '../../middlewares/validate'
-import { Workspace } from '../../../types/interfaces/workspace'
-import { updateWorkspaceMap } from '../../functions/actions/workspace'
-import { isContent, isWorkspace } from '../../../types/guards/workspace'
+import { isWorkspace } from '../../../types/guards/workspace'
+import type { AuthenticatedRequest } from '../../middlewares/validate'
+import type { Workspace } from '../../../types/interfaces/workspace'
 
 export const router = express.Router()
 
@@ -24,14 +23,13 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
   }
 })
 
-router.put('/update', async (req, res) => {
+router.patch('/update', async (req, res) => {
   try {
     const workspace: Workspace = req.body.workspace
-
-    if (workspace.content_type && workspace.operation === 'update/add') {
-      isContent(workspace.content)
-      const updateWorkspaceAction = updateWorkspaceMap[workspace.content_type]
-      await updateWorkspaceAction(workspace)
+    isWorkspace(workspace)
+    // @ts-ignore
+    if (workspace.name?.length > 0) {
+      // update name
     }
     res.json({ message: 'Updated Succesfully!'})
 }  catch (err) {

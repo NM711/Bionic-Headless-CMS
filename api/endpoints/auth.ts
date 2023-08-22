@@ -26,7 +26,6 @@ router.post("/sign-up", async (req, res) => {
   })
 })
 
-
 router.post('/sign-in', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = await getUserByUsername(req.body.username)
@@ -66,6 +65,7 @@ router.post('/delete', isAuth, attachCurrentUser, async (req: AuthenticatedReque
       res.json({ error: "Error Removing Account!" })
   }
 })
+
 // Allow user to change account information when session is active, or when he is logged in.
 router.get('/retrieve', isAuth, async (req: AuthenticatedRequest, res) => {
   try {
