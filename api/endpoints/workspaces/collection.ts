@@ -3,7 +3,7 @@ import { isWorkspace, isCollection } from '../../../types/guards/workspace'
 import { createCollection, removeCollection, retrieveCollection } from '../../querys/collection'
 import { updateCollectionActionMap } from '../../functions/actions/collection'
 
-import type { Workspace } from '../../../types/interfaces/workspace'
+import type { Workspace } from '../../../types/workspace'
 
 export const router = express.Router()
 

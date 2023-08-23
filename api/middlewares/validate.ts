@@ -6,7 +6,7 @@ import 'dotenv/config'
 import { isWorkspace } from '../../types/guards/workspace'
 import { UnauthorizedError } from 'express-jwt'
 import type { Request, Response, NextFunction } from 'express'
-import type { Workspace } from '../../types/interfaces/workspace'
+import type { Workspace } from '../../types/workspace'
 
 export interface AuthenticatedRequest extends Request {
   token?: any;

@@ -1,9 +1,11 @@
-import { promisify } from 'util'
-import { client } from "./client";
-import { queryHandler } from './handler';
-import type { Workspace, Content, Image } from '../../types/interfaces/workspace';
 import uuid4 from "uuid4";
 import bcrypt from 'bcrypt'
+import { promisify } from 'util'
+import { client } from "./client";
+import { queryHandler } from '../error/handler';
+import { QueryHandlerError } from "../../types/error";
+
+import type { Workspace } from '../../types/workspace';
 
 export async function createWorkspace(userId: string, { name, key_constraint }: Workspace) {
   if (name === undefined || name.length === 0) throw new Error("Workspace name is required!")
@@ -102,23 +104,26 @@ export async function getWorkspaceHash({ id }: Workspace) {
     return returned
   }
 
-export async function getWorkspace({ id }: Workspace) {
+export async function getWorkspace(workspaceId: string, userId: string) {
   const { error, returned } = await queryHandler({ message: "Error getting workspace!" }, async () => {
-    const workspace = await client.workspace.findUnique({
+    const workspace = await client.user_Workspace.findUniqueOrThrow({
       where: {
-        id
+        user_id_workspace_id: {
+          user_id: userId,
+          workspace_id: workspaceId
+        }
       },
       include: {
-        collection: true,
-        user_workspace: {
-          include: {
-            user: {
-              select: {
-                username: true,
-              }
-            },
+        user: {
+          select: {
+            username: true
           }
         },
+        workspace: {
+          include: {
+            collection: true,
+          }
+        }
       }
     })
       return workspace
@@ -164,7 +169,7 @@ export async function getAllUserWorkspaces (userId: string) {
 }
 
 export async function deleteWorkspace (id: string, userId: string) {
-  const { error } = await queryHandler({ message: "Error deleting workspace" }, async () => {
+  const { error } = await queryHandler({ message: "Error deleting workspace!" }, async () => {
     await client.user_Workspace.delete({
       where: {
         user_id_workspace_id: {
@@ -185,4 +190,34 @@ export async function deleteWorkspace (id: string, userId: string) {
   if (error) throw error
 
   console.log(`Workspace ${id} removed!`)
+}
+
+
+// only owners can do this so we check for user role in workspace, user id and workspace id.
+export async function updateWorkspaceName ({ id, name }: Workspace, userId: string) {
+  const { error } = await queryHandler({ message: "Error updating workspace name!" }, async () => {
+    await client.user_Workspace.update({
+      where: {
+        user_id_workspace_id: {
+          user_id: userId,
+          // @ts-ignore
+          workspace_id: id
+        },
+        role_name: "OWNER"
+      },
+      data: {
+        workspace: {
+          update: {
+            data: {
+              name
+            }
+          }
+        }
+      }
+    })
+  })
+
+  if (error) throw error
+
+  console.log(`Workspace ${id} name changed to ${name}`)
 }

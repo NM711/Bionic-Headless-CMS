@@ -2,8 +2,8 @@ import expres from 'express'
 import { isWorkspace, isUser } from '../../../types/guards/workspace'
 import { addUserToWorkspace, removeUserFromWorkspace, updateUserWorkspaceRole } from '../../querys/user'
 
-import type { User } from '../../../types/interfaces/user'
-import type { Workspace } from '../../../types/interfaces/workspace'
+import type { User } from '../../../types/user'
+import type { Workspace } from '../../../types/workspace'
 
 export const router = expres.Router()
 
