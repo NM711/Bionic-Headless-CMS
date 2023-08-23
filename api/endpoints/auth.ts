@@ -1,9 +1,11 @@
 import bcrypt from 'bcrypt'
+import express from 'express'
 import { createUser, getAllUserData, getUserByUsername, removeUser } from '../querys/user'
 import { generateJWT } from '../functions/authenthication/tokens'
-import express from 'express'
-import { AuthenticatedRequest, isAuth, attachCurrentUser } from '../middlewares/validate'
+import { AuthenticatedRequest, isAuth, attachCurrentUser, jwtErrorHandler } from '../middlewares/validate'
 export const router = express.Router()
+
+import type { Response } from 'express'
 
 // we need to also validate the user session so that if the user is logged in
 // and has an active session then he cant navigate to the auth pages except the
@@ -19,16 +21,16 @@ router.post("/sign-up", async (req, res) => {
       if (err) throw new Error(err.message)
       await createUser(username, hash)
       res.json({ message: `Succesfully created user ${username}` })
-    } catch (err) {
+    } catch (err: any) {
       console.log("Error When Creating User!", err)
-      res.status(500).json({ message: "Error on User Creation!" })
+      res.status(err.status).json(err)
     }
   })
 })
 
 router.post('/sign-in', async (req: AuthenticatedRequest, res) => {
   try {
-    const { user } = await getUserByUsername(req.body.username)
+    const user = await getUserByUsername(req.body.username)
     if (user) {
       const isValid: boolean = bcrypt.compareSync(req.body.password, user.password)
 
@@ -40,41 +42,41 @@ router.post('/sign-in', async (req: AuthenticatedRequest, res) => {
     }
   } catch (err) {
       console.log(err)
-      res.status(500).json({message: `Somethin Went Wrong Check Your Credentials and Try Again!`})
+      res.status(400).json({ error: `Somethin Went Wrong Check Your Credentials and Try Again!` })
   }
 })
 
-router.get('/sign-out', isAuth, attachCurrentUser, async (req: AuthenticatedRequest, res) => {
+router.get('/sign-out', isAuth, jwtErrorHandler, attachCurrentUser, async (req: AuthenticatedRequest, res: Response) => {
   try {
     delete req.headers.authorization
     console.log(`Authorization Request Header Removed!`)
     res.json({ message: "Succesfully signed out!" })
-  } catch (err) {
+  } catch (err: any) {
     console.log(err)
-    res.json({ error:"Error on sign-out!" })
+    res.status(500).json({ error: "Error on sign-out!" })
   }
 })
-
-router.post('/delete', isAuth, attachCurrentUser, async (req: AuthenticatedRequest, res) => {
+// it seems to run the middleware and not
+router.delete('/delete', isAuth, jwtErrorHandler, attachCurrentUser, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { data } = req.token
     await removeUser(data.id)
     res.json({ message: "User succesfully removed!" })
-  } catch (err) {
+  } catch (err: any) {
       console.log(err)
-      res.json({ error: "Error Removing Account!" })
+      res.status(err.status).json({ error: "Error Removing Account!" })
   }
 })
 
 // Allow user to change account information when session is active, or when he is logged in.
-router.get('/retrieve', isAuth, async (req: AuthenticatedRequest, res) => {
+router.get('/retrieve', isAuth, jwtErrorHandler, attachCurrentUser, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { data } = req.token
     const id = data.id
     const user = await getAllUserData({ id })
     res.json(user)
-  } catch (e) {
+  } catch (e: any) {
     console.log(e)
-    res.json({ error: 'Error retrieving user data!' })
+    res.status(e.status).json(e)
   }
 })

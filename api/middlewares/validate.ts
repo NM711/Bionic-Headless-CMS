@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 import * as jwt from 'express-jwt'
 import 'dotenv/config'
 import { isWorkspace } from '../../types/guards/workspace'
-
+import { UnauthorizedError } from 'express-jwt'
 import type { Request, Response, NextFunction } from 'express'
 import type { Workspace } from '../../types/interfaces/workspace'
 
@@ -24,8 +24,17 @@ export const isAuth = jwt.expressjwt({
   secret: process.env.JWT_SECRET,
   requestProperty: 'token',
   getToken: receiveJWTFromAuthHeader,
-  algorithms: ['RS256', 'HS256'],
+  algorithms: ['RS256', 'HS256']
 })
+
+export function jwtErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+  if (err instanceof UnauthorizedError && err.message === 'jwt expired') {
+    console.log("Invalid JWT!")
+    res.status(401).json({ error: "Token is invalid or is expired!" })
+  } else {
+    next(err)
+  }
+}
 
 export async function attachCurrentUser (req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const token = req.token
@@ -36,13 +45,13 @@ export async function attachCurrentUser (req: AuthenticatedRequest, res: Respons
         req.user = userId
         return next()
       }
-      return res.status(401).send('User Not Found!')
+      return res.status(404).send({ error: 'User Not Found!' })
     } catch (err) {
       console.log(err)
-      return res.status(500).send('Internal Server Error')
+      return res.status(500).send({ error: 'Internal Server Error' })
     }
   }
-  return res.status(401).send('Unauthorized')
+  return res.status(401).json({ error: 'Unauthorized' })
 
 }
 
@@ -88,9 +97,9 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
     const keyValidationAction = keyValidationMap[req.method]
     await keyValidationAction()
 
-    } catch (err) {
-      console.log(err)
-      res.json({ message: `${err}` })
+    } catch (err: any) {
+      console.log(err.status)
+      res.status(err.status).json(err)
   }
 
 }

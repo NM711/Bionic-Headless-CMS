@@ -3,7 +3,7 @@ import { queryHandler } from "./handler"
 import type { Workspace, Content } from "../../types/interfaces/workspace"
 
 export async function createCollection ({ id, collections }: Workspace) {
-  const { error } = await queryHandler("Failed to create collection!", async () => {
+  const { error } = await queryHandler({ message: "Failed to create collection!" }, async () => {
     if (Array.isArray(collections)) throw new Error("Expected only a single collection, if collection is in array please switch it for a type of object!")
     await client.collection.create({
       data: {
@@ -27,7 +27,7 @@ export async function createCollection ({ id, collections }: Workspace) {
 }
 
 async function updateCollectionContent({ id, collections }: Workspace, data: Object) {
-  const { error } = await queryHandler("Failed to update collection!", async () => {
+  const { error } = await queryHandler({ message: "Failed to update collection!" }, async () => {
     if (Array.isArray(collections)) throw new Error("Expected only a single collection, if collection is in array please switch it for a type of object!")
     
     await client.collection.update({
@@ -48,7 +48,7 @@ async function updateCollectionContent({ id, collections }: Workspace, data: Obj
 }
 
 export async function updateAllContent({ id, collections }: Workspace, { headers, textareas, images }: Content) {
-  const { error, returned } = await queryHandler('There has been an error attempting to update all of the content fields!', async () => {
+  const { error, returned } = await queryHandler({ message: "There has been an error attempting to update all of the content fields!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       headers: {
         createMany: {
@@ -76,7 +76,7 @@ export async function updateAllContent({ id, collections }: Workspace, { headers
 }
 
 export async function updateHeaders ({ id, collections }: Workspace, { headers }: Content) {
-  const { error, returned } = await queryHandler('Failed to update headers!', async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       headers: {
         createMany: {
@@ -94,7 +94,7 @@ export async function updateHeaders ({ id, collections }: Workspace, { headers }
 }
 
 export async function updateTextareas ({ id, collections }: Workspace, { textareas }: Content) {
-  const { error, returned } = await queryHandler('Failed to update headers!', async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       textareas: {
         createMany: {
@@ -112,7 +112,7 @@ export async function updateTextareas ({ id, collections }: Workspace, { textare
 }
 
 export async function updateImages ({ id, collections }: Workspace, { images }: Content) {
-  const { error, returned } = await queryHandler('Failed to update headers!', async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       images: {
         createMany: {
@@ -130,7 +130,7 @@ export async function updateImages ({ id, collections }: Workspace, { images }: 
 }
 
 export async function removeCollection (workspaceId: string, collectionId: string) {
-  const { error, returned } = await queryHandler("Failed to remove workspace collection!", async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to remove workspace collection!" }, async () => {
     const workspaceCollection = await client.collection.delete({
       where: {
         // @ts-ignore
@@ -147,6 +147,31 @@ export async function removeCollection (workspaceId: string, collectionId: strin
     })
 
     return `Successfully deleted collection from workspace ${workspaceCollection.workspace.name}`
+  })
+
+  if (error) throw error
+
+  return returned
+}
+
+export async function retrieveCollection (workspaceId: string, collectionId: string) {
+  const { error, returned } = await queryHandler({ message: "Failed to retrieve collection!" }, async () => {
+    return await client.collection.findUnique({
+      where: {
+        id: collectionId,
+        workspace_id: workspaceId
+      },
+
+      include: {
+        content: {
+          include: {
+            headers: true,
+            textareas: true,
+            images: true
+          }
+        }
+      }
+    })
   })
 
   if (error) throw error
