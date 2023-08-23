@@ -1,48 +1,60 @@
-import { client } from "./client";
-import { queryHandler } from "./handler";
+import { client } from "./client"
+import { queryHandler } from "./handler"
+
 import type { Workspace } from "../../types/interfaces/workspace"
 import type { User } from "../../types/interfaces/user"
 
 export async function createUser (username: string, password: string) {
-  await client.authUser.create({
+  const { error } = await queryHandler({ message: "Error creating user!" }, async () => {
+    await client.authUser.create({
       data: {
         username,
         password
       }
     })
-  if (!username || !password) throw new Error("A field returned a falsy value!")
-  console.log(`User ${username} Created!`)
+    console.log(`User ${username} Created!`)
+  })
+
+  if (error) throw error
 }
 
 async function getUserByUniqueConstrant (constraint: any) {
-  const user = await client.authUser.findUnique({
-    where: constraint,
-    select: {
-      username: true,
-      password: true,
-      id: true,
-    }
+  const { error, returned } = await queryHandler({ message: "Error retrieving user by constraint!" }, async () => {
+    const user = await client.authUser.findUnique({
+      where: constraint,
+      select: {
+        username: true,
+        password: true,
+        id: true,
+      }
+    })
+
+    return user
   })
 
-  if (!user) throw new Error("No Users Found!")
+  if (error) throw error
 
-  return { user }
+  return returned
 }
 
 export const getUserByUsername = async (username: string) => await getUserByUniqueConstrant({ username }) 
 export const getUserById = async (id: string) => await getUserByUniqueConstrant({ id })
 
 export async function removeUser (id: string) {
-  await client.authUser.delete({
-    where: {
-      id
-    }
+  const { error } = await queryHandler({ message: "Error removing user!" }, async () => {
+    await client.authUser.delete({
+      where: {
+        id
+      }
+    })
+    console.log(`User With Id Of ${id} Removed!`)
   })
-  console.log(`User With Id Of ${id} Removed!`)
+
+  if (error) throw error
 }
 
 export async function getAllUserData ({ id }: Workspace) {
-  const { error, returned } = await queryHandler('Failed to retrieve user data!', async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to retrieve user data!" }, async () => {
     const user = await client.authUser.findUnique({
       where: {
         id
@@ -99,9 +111,9 @@ export async function getAllUserData ({ id }: Workspace) {
 // im forced to use ts ignore
 
 export async function addUserToWorkspace ({ username }: User, workspace: Workspace) {
-  const { error } = await queryHandler('Failed to add user to workspace!', async () => {
+  const { error } = await queryHandler({ message: "Failed to add user to workspace!" }, async () => {
     // @ts-ignore
-    const { user } = await getUserByUsername(username)
+    const user = await getUserByUsername(username)
     await client.user_Workspace.create({
       // @ts-ignore
       data: {
@@ -117,9 +129,9 @@ export async function addUserToWorkspace ({ username }: User, workspace: Workspa
 }
 
 export async function removeUserFromWorkspace ({ username }: User, workspace: Workspace) {
-  const { error } = await queryHandler('Failed to remove user from workspace!', async () => {
+  const { error } = await queryHandler({ message: "Failed to retrieve user data!" }, async () => {
     // @ts-ignore
-    const { user } = await getUserByUsername(username)
+    const user = await getUserByUsername(username)
     await client.user_Workspace.delete({
       where: {
         user_id_workspace_id: {
@@ -135,9 +147,9 @@ export async function removeUserFromWorkspace ({ username }: User, workspace: Wo
 }
 
 export async function updateUserWorkspaceRole ({ username, role }: User, workspace: Workspace) {
-  const { error } = await queryHandler('Failed to update user workspace role!', async () => {
+  const { error } = await queryHandler({ message: "Failed to update user workspace role!" }, async () => {
     // @ts-ignore
-    const { user } = await getUserByUsername(username)
+    const user = await getUserByUsername(username)
 
     await client.user_Workspace.update({
       where: {

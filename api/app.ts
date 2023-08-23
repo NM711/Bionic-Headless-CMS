@@ -6,10 +6,13 @@ import { router as authEndpoint } from './endpoints/auth'
 import { router as workspacesEndpoint } from './endpoints/workspaces/workspace'
 import { router as userWorkspaceEndpoint } from './endpoints/workspaces/user'
 import { router as workspaceCollectionEndpoint } from './endpoints/workspaces/collection'
-import { attachCurrentUser, isAuth, validateWorkspaceKey } from './middlewares/validate'
+import { attachCurrentUser, jwtErrorHandler, isAuth, validateWorkspaceKey } from './middlewares/validate'
 const app = express()
 
 const port = 3001
+
+// Middleware to handle unauthorized errors
+
 app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -22,6 +25,7 @@ app.use('/auth', authEndpoint)
 app.use(
   '/workspaces',
   isAuth,
+  jwtErrorHandler,
   attachCurrentUser,
   validateWorkspaceKey,
   workspacesEndpoint,

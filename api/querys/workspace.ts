@@ -9,7 +9,7 @@ export async function createWorkspace(userId: string, { name, key_constraint }: 
   if (name === undefined || name.length === 0) throw new Error("Workspace name is required!")
   if (userId === undefined || userId.length === 0) throw new Error('User id is required!')
 
-  const { error, returned } = await queryHandler('Error On Workspace Creation!', async () => {
+  const { error, returned } = await queryHandler({ message: "Error On Workspace Creation!" }, async () => {
     if (!key_constraint) {
       await client.user_Workspace.create({
         data: {
@@ -67,7 +67,7 @@ export async function createWorkspace(userId: string, { name, key_constraint }: 
 
 
 export async function retrieveKeyConstraint ({ id }: Workspace) {
-  const { error, returned } = await queryHandler('Could not retrieve key constraint field!', async () => {
+  const { error, returned } = await queryHandler({ message: "Could not retrieve key constraint field!" }, async () => {
    const keyConstraint = await client.workspace.findUnique({
      where: {
        id
@@ -85,7 +85,7 @@ export async function retrieveKeyConstraint ({ id }: Workspace) {
 }
 
 export async function getWorkspaceHash({ id }: Workspace) {
-  const { error, returned } = await queryHandler('Error Getting Workspace Hash', async () => {
+  const { error, returned } = await queryHandler({ message: "Error Getting Workspace Hash" }, async () => {
     const hash =  await client.workspace.findUnique({
         where: {
           id
@@ -103,7 +103,7 @@ export async function getWorkspaceHash({ id }: Workspace) {
   }
 
 export async function getWorkspace({ id }: Workspace) {
-  const { error, returned } = await queryHandler('Error getting workspace!', async () => {
+  const { error, returned } = await queryHandler({ message: "Error getting workspace!" }, async () => {
     const workspace = await client.workspace.findUnique({
       where: {
         id
@@ -131,7 +131,7 @@ export async function getWorkspace({ id }: Workspace) {
 // add conditionals within to validate arr, or do it in the higher order function
 
 export async function getAllUserWorkspaces (userId: string) {
-  const { error, returned } = await queryHandler('Error retrieving all workspaces!', async () => {
+  const { error, returned } = await queryHandler({ message: "Error retrieving all workspaces!" }, async () => {
     const workspaces = await client.user_Workspace.findMany({
       where: {
         user_id: userId
@@ -164,7 +164,7 @@ export async function getAllUserWorkspaces (userId: string) {
 }
 
 export async function deleteWorkspace (id: string, userId: string) {
-  const { error } = await queryHandler('Error deleting workspace', async () => {
+  const { error } = await queryHandler({ message: "Error deleting workspace" }, async () => {
     await client.user_Workspace.delete({
       where: {
         user_id_workspace_id: {

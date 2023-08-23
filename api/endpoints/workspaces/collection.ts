@@ -1,6 +1,6 @@
 import express from 'express'
 import { isWorkspace, isCollection } from '../../../types/guards/workspace'
-import { createCollection, removeCollection } from '../../querys/collection'
+import { createCollection, removeCollection, retrieveCollection } from '../../querys/collection'
 import { updateCollectionActionMap } from '../../functions/actions/collection'
 
 import type { Workspace } from '../../../types/interfaces/workspace'
@@ -14,8 +14,8 @@ router.post('/collection/create', async (req, res) => {
     isCollection(workspace.collections)
     await createCollection(workspace)
     res.json({ message: 'Successfully created collection!!'})
-  }  catch (err) {
-     res.json({ error: `${err}` })
+  }  catch (err: any) {
+     res.status(err.status).json(err)
   }
 })
 
@@ -31,8 +31,8 @@ router.put("/collection/update", async (req, res) => {
     const updateCollectionAction = updateCollectionActionMap[collection.operation]
     const { message } = await updateCollectionAction(collection?.content_type, workspace)
     res.json(message)
-  } catch (err) {
-    res.json({ error: `${err}` })
+  } catch (err: any) {
+    res.status(err.status).json(err)
   }
 })
 
@@ -44,7 +44,19 @@ router.delete("/collection/delete", async (req, res) => {
     const message = await removeCollection(workspaceId, collectionId)
     console.log(message)
     res.json({ message })
-  } catch (err) {
-    res.status(400).json({ error: `${err}` })
+  } catch (err: any) {
+    res.status(err.status).json(err)
+  }
+})
+
+router.get("/collection/retrieve", async (req, res) => {
+  try {
+    const workspaceId = req.query.id as string
+    const collectionId = req.query.cid as string
+    const collection = await retrieveCollection(workspaceId, collectionId)
+
+    return collection
+  } catch (err: any) {
+    res.status(err.status).json(err)
   }
 })

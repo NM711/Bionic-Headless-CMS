@@ -22,8 +22,8 @@ router.put('/user/update', async (req, res) => {
       await removeUserFromWorkspace(user, workspace)
     }
     res.json({ message: "Operation success!" })
-  } catch (err) {
-    res.json({ error: `${err}` })
+  } catch (err: any) {
+    res.status(err.status).json(err)
   }
 })
 
@@ -40,7 +40,7 @@ router.patch('/user/update/role', async (req, res) => {
     }
 
     res.json({ message: "User role succesfully changed!" })
-  } catch (err) {
-    res.json({ error: `${err}` })
+  } catch (err: any) {
+    res.status(err.status).json(err)
   }
 })
