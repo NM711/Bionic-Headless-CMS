@@ -1,5 +1,7 @@
 // workspace sub content
 
+import { User } from "./user"
+
 export interface Header {
   id?: string,
   name: string

@@ -1,5 +1,5 @@
 import { updateHeaders, updateTextareas, updateImages, updateAllContent } from "../../querys/collection"
-import type { Content, Collection, Workspace, CollectionOperation } from "../../../types/interfaces/workspace"
+import type { Content, Collection, Workspace, CollectionOperation } from "../../../types/workspace"
 
 export const updateCollectionActionMap: { [ operation in CollectionOperation ]: Function } = {
   "add": async (contentType: "headers" | "textareas" | "images" | "all", w: Workspace) => {

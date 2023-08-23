@@ -1,6 +1,6 @@
 import { client } from "./client"
-import { queryHandler } from "./handler"
-import type { Workspace, Content } from "../../types/interfaces/workspace"
+import { queryHandler } from "../error/handler"
+import type { Workspace, Content } from "../../types/workspace"
 
 export async function createCollection ({ id, collections }: Workspace) {
   const { error } = await queryHandler({ message: "Failed to create collection!" }, async () => {

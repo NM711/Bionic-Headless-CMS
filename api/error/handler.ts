@@ -1,30 +1,13 @@
 import { Prisma } from "@prisma/client"
 
+import type { IApiErrorHandler } from "../../types/error"
 // move to seperate module or folder named errors, seperate error types in types folder under errors, etc.
-
-class QueryHandlerError extends Error {
-  statusCode: number
-  name: string
-  constructor ({ message, statusCode }: IApiErrorHandler) {
-    super(message)
-    this.name = "QueryHandlerError"
-    this.statusCode = statusCode || 500
-  }
-}
-
-// i decided to not extend Error since i was getting an odd warning about the "name" property of the object type
-
-interface IApiErrorHandler {
-  statusCode?: number
-  message: string
-}
 
 export const errorObj = ({ message, statusCode = 500 }: IApiErrorHandler): { error: { error: string, status: number }, returned: any } => {
   return { error: { error: message, status: statusCode }, returned: null }
 }
 
 export async function queryHandler ({ message, statusCode = 500 }: IApiErrorHandler, func: any) {
-  const error = new QueryHandlerError({ message, statusCode })
   try {
     const returned = await func()
     return { error: null, returned }
@@ -33,6 +16,7 @@ export async function queryHandler ({ message, statusCode = 500 }: IApiErrorHand
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
 
       console.log(`PRISMA ERROR CODE: ${e.code}`)
+      //  create a map of errors maybe?
       switch (e.code) {
         // some basic errors which im certain might appear
         case 'P2001':
@@ -43,11 +27,22 @@ export async function queryHandler ({ message, statusCode = 500 }: IApiErrorHand
         return errorObj({ message: "Constraint failed!", statusCode: 500 })
         case 'P2015':
         return errorObj({ message: "Related record does not exist!", statusCode: 404 })
+        case 'P2023':
+        return errorObj({ message: "There seems to be data with an invalid length amount!", statusCode: 400 })
         case 'P2025':
-        return errorObj({ message: "Record does not exist", statusCode: 404 })
+        return errorObj({ message: "Record does not exist!", statusCode: 404 })
       }
     }
     console.log(`Query Handler Error: ${e}`)
-    return errorObj({ message: error.message, statusCode: error.statusCode })
+    return errorObj({ message, statusCode })
+  }
+}
+
+export function typeGuardHandler (fn: Function) {
+  try {
+    fn()
+    return { error: null }
+  } catch (err: any) {
+    return errorObj({ message: err.message, statusCode: 400 })
   }
 }

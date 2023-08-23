@@ -1,17 +1,9 @@
 import { isType } from "./fnUtils"
-import { errorObj } from "../../api/querys/handler"
+import { errorObj } from "../../api/error/handler"
+import { typeGuardHandler } from "../../api/error/handler"
 
-import type { Workspace, Content, Collection } from "../interfaces/workspace"
-import type { User } from "../interfaces/user"
-
-export function typeGuardHandler (fn: Function) {
-  try {
-    fn()
-    return { error: null }
-  } catch (err: any) {
-    return errorObj({ message: err.message, statusCode: 400 })
-  }
-}
+import type { Workspace, Content, Collection } from "../workspace"
+import type { User } from "../user"
 
 // higher order function this.
 

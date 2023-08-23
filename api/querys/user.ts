@@ -1,8 +1,8 @@
 import { client } from "./client"
-import { queryHandler } from "./handler"
+import { queryHandler } from "../error/handler"
 
-import type { Workspace } from "../../types/interfaces/workspace"
-import type { User } from "../../types/interfaces/user"
+import type { Workspace } from "../../types/workspace"
+import type { User } from "../../types/user"
 
 export async function createUser (username: string, password: string) {
   const { error } = await queryHandler({ message: "Error creating user!" }, async () => {
