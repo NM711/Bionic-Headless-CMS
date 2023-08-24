@@ -1,7 +1,7 @@
 import express from 'express'
 import { isWorkspace, isCollection } from '../../../types/guards/workspace'
 import { createCollection, removeCollection, retrieveCollection } from '../../querys/collection'
-import { updateCollectionActionMap } from '../../functions/actions/collection'
+import { updateCollectionContentActionMap } from '../../functions/actions/collection'
 
 import type { Workspace } from '../../../types/workspace'
 
@@ -28,7 +28,7 @@ router.put("/collection/update", async (req, res) => {
 
     if (Array.isArray(collection)) throw new Error("Expected only a single collection!")
     // @ts-ignore
-    const updateCollectionAction = updateCollectionActionMap[collection.operation]
+    const updateCollectionAction = updateCollectionContentActionMap[collection.operation]
     const { message } = await updateCollectionAction(collection?.content_type, workspace)
     res.json(message)
   } catch (err: any) {
@@ -38,10 +38,9 @@ router.put("/collection/update", async (req, res) => {
 
 router.delete("/collection/delete", async (req, res) => {
   try {
-    const workspaceId = req.query.id as string
-    const collectionId = req.query.cid as string
+    const { id, cid } = req.query as { id: string, cid: string }
 
-    const message = await removeCollection(workspaceId, collectionId)
+    const message = await removeCollection(id, cid)
     console.log(message)
     res.json({ message })
   } catch (err: any) {
@@ -51,11 +50,10 @@ router.delete("/collection/delete", async (req, res) => {
 
 router.get("/collection/retrieve", async (req, res) => {
   try {
-    const workspaceId = req.query.id as string
-    const collectionId = req.query.cid as string
-    const collection = await retrieveCollection(workspaceId, collectionId)
+    const { id, cid } = req.query as { id: string, cid: string }
+    const collection = await retrieveCollection(id, cid)
 
-    return collection
+    return res.json(collection)
   } catch (err: any) {
     res.status(err.status).json(err)
   }

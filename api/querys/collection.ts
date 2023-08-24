@@ -27,27 +27,23 @@ export async function createCollection ({ id, collections }: Workspace) {
 }
 
 async function updateCollectionContent({ id, collections }: Workspace, data: Object) {
-  const { error } = await queryHandler({ message: "Failed to update collection!" }, async () => {
-    if (Array.isArray(collections)) throw new Error("Expected only a single collection, if collection is in array please switch it for a type of object!")
+  if (Array.isArray(collections)) throw new Error("Expected only a single collection, if collection is in array please switch it for a type of object!")
     
-    await client.collection.update({
-      where: {
-        // @ts-ignore
-        id: collections.id,
-        workspace_id: id
-      },
-      data: {
-        content: {
-          update: data
-        }
+  await client.collection.update({
+    where: {
+      // @ts-ignore
+      id: collections.id,
+      workspace_id: id
+    },
+    data: {
+      content: {
+        update: data
       }
-    })
+    }
   })
-
-  if (error) throw error
 }
 
-export async function updateAllContent({ id, collections }: Workspace, { headers, textareas, images }: Content) {
+export async function addAllContent({ id, collections }: Workspace, { headers, textareas, images }: Content) {
   const { error, returned } = await queryHandler({ message: "There has been an error attempting to update all of the content fields!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       headers: {
@@ -75,7 +71,7 @@ export async function updateAllContent({ id, collections }: Workspace, { headers
   return returned
 }
 
-export async function updateHeaders ({ id, collections }: Workspace, { headers }: Content) {
+export async function addHeaders ({ id, collections }: Workspace, { headers }: Content) {
   const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       headers: {
@@ -85,7 +81,7 @@ export async function updateHeaders ({ id, collections }: Workspace, { headers }
       }
     })
 
-    return 'Updated Headers!'
+    return 'Created Headers!'
   })
 
   if (error) throw error
@@ -93,7 +89,7 @@ export async function updateHeaders ({ id, collections }: Workspace, { headers }
   return returned
 }
 
-export async function updateTextareas ({ id, collections }: Workspace, { textareas }: Content) {
+export async function addTextareas ({ id, collections }: Workspace, { textareas }: Content) {
   const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       textareas: {
@@ -103,7 +99,7 @@ export async function updateTextareas ({ id, collections }: Workspace, { textare
       }
     })
 
-    return 'Updated Textareas'
+    return 'Created Textareas!'
   })
 
   if (error) throw error
@@ -111,7 +107,7 @@ export async function updateTextareas ({ id, collections }: Workspace, { textare
   return returned
 }
 
-export async function updateImages ({ id, collections }: Workspace, { images }: Content) {
+export async function addImages ({ id, collections }: Workspace, { images }: Content) {
   const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       images: {
@@ -121,7 +117,7 @@ export async function updateImages ({ id, collections }: Workspace, { images }: 
       }
     })
 
-    return 'Updated Images'
+    return 'Created Images!'
   })
 
   if (error) throw error
@@ -156,7 +152,7 @@ export async function removeCollection (workspaceId: string, collectionId: strin
 
 export async function retrieveCollection (workspaceId: string, collectionId: string) {
   const { error, returned } = await queryHandler({ message: "Failed to retrieve collection!" }, async () => {
-    return await client.collection.findUnique({
+    return await client.collection.findUniqueOrThrow({
       where: {
         id: collectionId,
         workspace_id: workspaceId
