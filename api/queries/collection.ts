@@ -1,6 +1,7 @@
 import { client } from "./client"
 import { queryHandler } from "../error/handler"
 import type { Workspace, Content } from "../../types/workspace"
+import type { Image } from "../../types/workspace"
 
 export async function createCollection ({ id, collections }: Workspace) {
   const { error } = await queryHandler({ message: "Failed to create collection!" }, async () => {
@@ -43,7 +44,7 @@ async function updateCollectionContent({ id, collections }: Workspace, data: Obj
   })
 }
 
-export async function addAllContent({ id, collections }: Workspace, { headers, textareas, images }: Content) {
+export async function addAllContent({ id, collections }: Workspace, { headers, textareas }: Content) {
   const { error, returned } = await queryHandler({ message: "There has been an error attempting to update all of the content fields!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       headers: {
@@ -55,12 +56,7 @@ export async function addAllContent({ id, collections }: Workspace, { headers, t
         createMany: {
           data: textareas!.map(text => ({ text }))
         }
-      },
-      images: {
-        createMany: {
-          data: images!.map(url => ({ url }))
-        },
-      },
+      }
     })
 
     return "Successfully updated all content"
@@ -90,7 +86,7 @@ export async function addHeaders ({ id, collections }: Workspace, { headers }: C
 }
 
 export async function addTextareas ({ id, collections }: Workspace, { textareas }: Content) {
-  const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to update textareas!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       textareas: {
         createMany: {
@@ -107,17 +103,35 @@ export async function addTextareas ({ id, collections }: Workspace, { textareas 
   return returned
 }
 
-export async function addImages ({ id, collections }: Workspace, { images }: Content) {
-  const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
+export async function addImage ({ id, collections }: Workspace, { byte }: Image) {
+  const { error, returned } = await queryHandler({ message: "Failed to update image!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       images: {
-        createMany: {
-          data: images!.map(url => ({ url }))
+        create: {
+          byte
         }
       }
     })
 
-    return 'Created Images!'
+    return 'Created Image!'
+  })
+
+  if (error) throw error
+  
+  return returned
+}
+
+
+export async function removeImage ({ id, collections }: Workspace, imageId: string) {
+  const { error, returned } = await queryHandler({ message: "Failed to remove image!" }, async () => {
+    await updateCollectionContent({ id, collections }, {
+      images: {
+        delete: {
+          id: imageId
+        }
+      }
+    })
+    return 'Removed Image!'
   })
 
   if (error) throw error

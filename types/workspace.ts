@@ -14,8 +14,7 @@ export interface Textarea {
 
 export interface Image {
   id?: string
-  byte: BinaryType
-  // maybe add byte data later idk
+  byte: Buffer
 }
 
 export interface Content {

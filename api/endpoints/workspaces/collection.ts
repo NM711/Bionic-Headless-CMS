@@ -1,11 +1,14 @@
 import express from 'express'
+import multer from 'multer'
 import { isWorkspace, isCollection } from '../../../types/guards/workspace'
-import { createCollection, removeCollection, retrieveCollection } from '../../querys/collection'
-import { updateCollectionContentActionMap } from '../../functions/actions/collection'
+import { createCollection, removeCollection, retrieveCollection, addImage, removeImage } from '../../queries/collection'
+import { updateCollectionContentActionMap } from '../../functions/actions/collection/content'
 
 import type { Workspace } from '../../../types/workspace'
 
 export const router = express.Router()
+
+const update = multer()
 
 router.post('/collection/create', async (req, res) => {
   try {
@@ -58,3 +61,36 @@ router.get("/collection/retrieve", async (req, res) => {
     res.status(err.status).json(err)
   }
 })
+
+// IMAGES part of the collection
+
+router.post("/collection/image/add", update.single("image"), async (req, res) => {
+  try {   
+    const { id, cid } = req.query as { id: string, cid: string }
+    const byteData = req.file!.buffer
+    // for now error handle later
+    const message = await addImage({ id, collections: { id: cid } }, { byte: byteData })
+    res.json({ message })
+  } catch (err: any) {
+    res.status(err.status).json(err)
+  }
+ })
+
+ router.delete("/collection/image/delete", async (req, res) => {
+   try {
+     const { id, cid, imgid } = req.query as { id: string, cid: string, imgid: string }
+     const message = await removeImage({ id, collections: { id: cid } }, imgid)
+     res.json({ message })
+   } catch (err: any) {
+     res.status(err.status).json(err)
+   }
+ })
+
+ router.get("/collection/image", async (req, res) => {
+  try {
+    const { id, cid, imgid } = req.query as { id: string, cid: string, imgid: string }
+    
+  } catch (err: any) {
+    res.status(err.status).json(err)
+  }
+ })

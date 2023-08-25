@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import express from 'express'
-import { createUser, getAllUserData, getUserByUsername, removeUser } from '../querys/user'
+import { createUser, getAllUserData, getUserByUsername, removeUser } from '../queries/user'
 import { generateJWT } from '../functions/authenthication/tokens'
 import { AuthenticatedRequest, isAuth, attachCurrentUser, jwtErrorHandler } from '../middlewares/validate'
 export const router = express.Router()

@@ -14,3 +14,5 @@ export interface IApiErrorHandler {
   statusCode?: number
   message: string
 }
+
+export type ApiErrorReturn = { error: { error: string, status: number }, returned: any }

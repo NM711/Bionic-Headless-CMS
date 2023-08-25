@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt'
 import { promisify } from 'util'
 import { client } from "./client";
 import { queryHandler } from '../error/handler';
-import { QueryHandlerError } from "../../types/error";
 
 import type { Workspace } from '../../types/workspace';
 
@@ -88,7 +87,7 @@ export async function retrieveKeyConstraint ({ id }: Workspace) {
 
 export async function getWorkspaceHash({ id }: Workspace) {
   const { error, returned } = await queryHandler({ message: "Error Getting Workspace Hash" }, async () => {
-    const hash =  await client.workspace.findUnique({
+    const hash =  await client.workspace.findUniqueOrThrow({
         where: {
           id
         },

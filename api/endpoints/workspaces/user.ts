@@ -1,6 +1,6 @@
 import expres from 'express'
 import { isWorkspace, isUser } from '../../../types/guards/workspace'
-import { addUserToWorkspace, removeUserFromWorkspace, updateUserWorkspaceRole } from '../../querys/user'
+import { addUserToWorkspace, removeUserFromWorkspace, updateUserWorkspaceRole } from '../../queries/user'
 
 import type { User } from '../../../types/user'
 import type { Workspace } from '../../../types/workspace'
