@@ -15,9 +15,9 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
     const key = await createWorkspace(userId, workspace)
     if (!key) return res.json({ message: `Succesfully Created Workspace!` })
     res.json(
-        { message: `Succesfully Created Workspace ${workspace.name}, Your Key Is ${key} Make Sure You Save It!`,
-          key
-        })
+      { message: `Succesfully Created Workspace ${workspace.name}, Your Key Is ${key} Make Sure You Save It!`,
+        key
+      })
   } catch (err: any) {
     res.status(err.status).json(err)
   }

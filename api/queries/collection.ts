@@ -1,11 +1,15 @@
 import { client } from "./client"
 import { queryHandler } from "../error/handler"
-import type { Workspace, Content } from "../../types/workspace"
-import type { Image } from "../../types/workspace"
+import type { Workspace, Content, Media } from "../../types/workspace"
+
+import { ApiHandlerError } from "../../types/error"
+
+const expectedObjNotArrErr = new ApiHandlerError({ message: "Expected only a single collection, if collection is in array please switch it for a type of object!", statusCode: 400 })
 
 export async function createCollection ({ id, collections }: Workspace) {
   const { error } = await queryHandler({ message: "Failed to create collection!" }, async () => {
-    if (Array.isArray(collections)) throw new Error("Expected only a single collection, if collection is in array please switch it for a type of object!")
+    if (Array.isArray(collections)) throw expectedObjNotArrErr
+    if (collections!.name!.length < 6) throw new ApiHandlerError({ message: "A collection name must be atleast 6 characters long!", statusCode: 400 })
     await client.collection.create({
       data: {
         workspace: {
@@ -13,9 +17,9 @@ export async function createCollection ({ id, collections }: Workspace) {
             id
           }
         },
-        content: {
+        media_collection: {
           create: {
-
+          
           }
         },
         // @ts-ignore
@@ -28,7 +32,7 @@ export async function createCollection ({ id, collections }: Workspace) {
 }
 
 async function updateCollectionContent({ id, collections }: Workspace, data: Object) {
-  if (Array.isArray(collections)) throw new Error("Expected only a single collection, if collection is in array please switch it for a type of object!")
+  if (Array.isArray(collections)) throw expectedObjNotArrErr
     
   await client.collection.update({
     where: {
@@ -36,11 +40,7 @@ async function updateCollectionContent({ id, collections }: Workspace, data: Obj
       id: collections.id,
       workspace_id: id
     },
-    data: {
-      content: {
-        update: data
-      }
-    }
+    data: data
   })
 }
 
@@ -95,7 +95,7 @@ export async function addTextareas ({ id, collections }: Workspace, { textareas 
       }
     })
 
-    return 'Created Textareas!'
+    return 'Created textareas!'
   })
 
   if (error) throw error
@@ -103,17 +103,20 @@ export async function addTextareas ({ id, collections }: Workspace, { textareas 
   return returned
 }
 
-export async function addImage ({ id, collections }: Workspace, { byte }: Image) {
-  const { error, returned } = await queryHandler({ message: "Failed to update image!" }, async () => {
+export async function addImage ({ id, collections }: Workspace, { byte, name }: Media) {
+  const { error, returned } = await queryHandler({ message: "Failed to add media type!" }, async () => {
+    if (!name) throw new ApiHandlerError({ message: "Missing name for media type", statusCode: 400 })
+    const slug = name.replace(/\s+/g, '-').toLowerCase()
     await updateCollectionContent({ id, collections }, {
-      images: {
+      media: {
         create: {
-          byte
+          byte,
+          name,
+          slug
         }
       }
     })
-
-    return 'Created Image!'
+    return 'Added media type!'
   })
 
   if (error) throw error
@@ -122,16 +125,16 @@ export async function addImage ({ id, collections }: Workspace, { byte }: Image)
 }
 
 
-export async function removeImage ({ id, collections }: Workspace, imageId: string) {
-  const { error, returned } = await queryHandler({ message: "Failed to remove image!" }, async () => {
+export async function removeImage ({ id, collections }: Workspace, mediaId: string) {
+  const { error, returned } = await queryHandler({ message: "Failed to remove media type!" }, async () => {
     await updateCollectionContent({ id, collections }, {
-      images: {
+      media: {
         delete: {
-          id: imageId
+          id: mediaId
         }
       }
     })
-    return 'Removed Image!'
+    return 'Removed media type!'
   })
 
   if (error) throw error
@@ -173,13 +176,9 @@ export async function retrieveCollection (workspaceId: string, collectionId: str
       },
 
       include: {
-        content: {
-          include: {
-            headers: true,
-            textareas: true,
-            images: true
-          }
-        }
+        headers: true,
+        textareas: true,
+        media: true
       }
     })
   })

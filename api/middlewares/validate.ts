@@ -78,7 +78,6 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
   // anyways off to sleep
   
   async function validateKeyActionWithBody () {
-      console.log(req.path)
       if (req.path === "/create") return next()
 
       if (req.path === "/collection/image/add") {

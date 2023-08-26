@@ -145,13 +145,9 @@ export async function getAllUserWorkspaces (userId: string) {
           include: {
             collection: {
               include: {
-                content: {
-                  include: {
-                    headers: true,
-                    textareas: true,
-                    images: true
-                  }
-                }
+                headers: true,
+                textareas: true,
+                media: true 
               }
             }
           }
