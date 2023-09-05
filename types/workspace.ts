@@ -1,7 +1,4 @@
 // workspace sub content
-
-import { User } from "./user"
-
 export interface Header {
   id?: string,
   name: string
@@ -12,17 +9,17 @@ export interface Textarea {
   content: string
 }
 
-export interface Image {
+export interface Media {
   id?: string
-  byte: BinaryType
-  // maybe add byte data later idk
+  byte: Buffer
+  name?: string
 }
 
 export interface Content {
   id?: string
   headers?: Header[]
   textareas?: Textarea[]
-  images?: Image[]
+  media?: Media[]
 }
 
 export type CollectionOperation = "update" | "add" | "remove" | "none"

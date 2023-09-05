@@ -39,51 +39,43 @@ model Collection {
   workspace_id String    
   name         String
   workspace    Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  content      Content?
+  headers       Header[]
+  textareas     Textarea[]
+  media Media[]
 
   @@map("collection")
   @@index([workspace_id])
 }
 
-model Content {
-  id            String     @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  collection_id String     @unique
-  collection    Collection?  @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  headers       Header[]
-  textareas     Textarea[]
-  images        Image[]
-
-  @@map("content")
+model Media {
+  id String @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  collection_id String
+  collection Collection @relation(fields: [collection_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  byte Bytes
+  name String
+  slug String
+  @@map("media")
+  @@index([collection_id])
 }
 
 model Header {
   id         String  @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  content_id String
-  content    Content @relation(fields: [content_id], references: [id], onDelete: Cascade)
+  collection_id String
+  collection    Collection @relation(fields: [collection_id], references: [id], onDelete: Cascade)
   text       String
 
-  @@index([content_id])
+  @@index([collection_id])
   @@map("header")
 }
 
 model Textarea {
   id         String  @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  content_id String
-  content    Content @relation(fields: [content_id], references: [id], onDelete: Cascade)
+  collection_id String
+  collection    Collection @relation(fields: [collection_id], references: [id], onDelete: Cascade)
   text       String
 
-  @@index([content_id])
+  @@index([collection_id])
   @@map("textarea")
-}
-
-model Image {
-  id         String  @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  content_id String
-  content    Content @relation(fields: [content_id], references: [id], onDelete: Cascade)
-  byte       Bytes
-
-  @@index([content_id])
-  @@map("image")
 }
 
 model Role {

@@ -1,5 +1,5 @@
-import { getUserById } from '../querys/user'
-import { getWorkspaceHash, retrieveKeyConstraint } from '../querys/workspace'
+import { getUserById } from '../queries/user'
+import { getWorkspaceHash, retrieveKeyConstraint } from '../queries/workspace'
 import bcrypt from 'bcrypt'
 import * as jwt from 'express-jwt'
 import 'dotenv/config'
@@ -64,16 +64,34 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
     console.log('Workspace key is valid')
     next()
   }
+  
 
+  // I believe there might be a great fundamental flaw in this, and its the fact that
+  // we are not verifying wether or not a workspace exists with this id
+  // we can retrieve the constraint but shouldnt we be checking if the workspace exists first and foremost?
+
+  // Me 20min later followup
+  // I think im good, since now that i realize all the queries to a specifc workspace are handled on the endpoint level 
+  // at the end of the day these queries will tel wether or not these exist
+  // im deprived of fucking sleep
+  // anyways i still think we should error handle here and check for the workspace record
+  // anyways off to sleep
+  
   async function validateKeyActionWithBody () {
       if (req.path === "/create") return next()
+
+      if (req.path === "/collection/image/add") {
+        // this specific endpoint asks for form data so ill just pass the workspace id in a query instead.
+        return await validateKeyAction()
+      } 
+
+      console.log(req.body.workspace)
       const key: any = req.query.key
       const workspace: Workspace = req.body.workspace
-      if (!workspace) throw new Error('No workspace found in the body this field is required!')
       isWorkspace(workspace)
-      if (!workspace.id) throw new Error('Workspace id field is missing!')
       const k = await retrieveKeyConstraint(workspace)
       if (!k?.key_constraint) return next()
+      // @ts-ignore
       await compareIdAndHash(workspace.id, key)
   }
 
@@ -95,6 +113,7 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
     'PATCH': validateKeyActionWithBody
   }
     const keyValidationAction = keyValidationMap[req.method]
+    
     await keyValidationAction()
 
     } catch (err: any) {

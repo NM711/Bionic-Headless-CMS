@@ -1,5 +1,5 @@
 import express from 'express'
-import { createWorkspace, deleteWorkspace, getWorkspace, updateWorkspaceName } from '../../querys/workspace'
+import { createWorkspace, deleteWorkspace, getWorkspace, updateWorkspaceName } from '../../queries/workspace'
 import { isWorkspace } from '../../../types/guards/workspace'
 
 import type { AuthenticatedRequest } from '../../middlewares/validate'
@@ -15,9 +15,9 @@ router.post('/create', async (req: AuthenticatedRequest, res) => {
     const key = await createWorkspace(userId, workspace)
     if (!key) return res.json({ message: `Succesfully Created Workspace!` })
     res.json(
-        { message: `Succesfully Created Workspace ${workspace.name}, Your Key Is ${key} Make Sure You Save It!`,
-          key
-        })
+      { message: `Succesfully Created Workspace ${workspace.name}, Your Key Is ${key} Make Sure You Save It!`,
+        key
+      })
   } catch (err: any) {
     res.status(err.status).json(err)
   }
@@ -60,6 +60,6 @@ router.delete('/delete', async (req: AuthenticatedRequest, res) => {
     res.json({ message: `Succesfully deleted workspace ${id}` })
   } catch (err: any) {
     
-    res.send(`${err}`)
+    res.status(err.status).json(err)
   }
 })

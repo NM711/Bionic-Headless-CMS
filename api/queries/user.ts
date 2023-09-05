@@ -83,13 +83,9 @@ export async function getAllUserData ({ id }: Workspace) {
               collection: {
                 select: {
                   id: true,
-                  content: {
-                    select: {
-                     images: true,
-                     textareas: true,
-                     headers: true,
-                    }
-                  }
+                  headers: true,
+                  textareas: true,
+                  media: true
                 }
               },
               }
