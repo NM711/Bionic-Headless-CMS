@@ -4,7 +4,7 @@
 
 Bionic CMS is an open source content management system which aims to be flexible and extendible for others to use.
 
-This project is entirely api based (Headless CMS) with a complementary ui for people to use (Under Development),
+This project is entirely api based (Headless CMS) with a complementary ui for people to use (Under Development will add here when complete),
 you can use the full capabilities of the api after making a account. Alternatively if you want
 you can clone this repo download postgresql and the rest of this projects dependencies and run the project
 yourself.
@@ -13,11 +13,7 @@ Each created workspace has an api key which can be implemented in all sorts of a
 to be able to do whatever they want to make their work easier, or more fun, 
 want to make a CLI app with your own saved content? You can.
 
-**There is also a webapp which offers all of the apis functionality to its fullest extent
-at http://websitehere.com**
-
-This project was intially made for myself but maybe others can find a use for it,
-### For Users Who Are Planning To SelfHost
+### For Users Who Are Planning To Run Locally
 
 **Make sure you have Postgresql version 15.1 or higher.**
 **Yarn after cloning the repository to install dependencies**
