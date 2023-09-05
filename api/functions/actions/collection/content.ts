@@ -1,17 +1,25 @@
-import { addHeaders, addTextareas, addAllContent } from "../../../queries/collection"
+import { addHeaders, addTextareas, addAllContent, updateHeaders, updateTextareas, removeHeader, removeTextarea } from "../../../queries/collection"
 import type { Content, Collection, Workspace, CollectionOperation } from "../../../../types/workspace"
 
 export const updateCollectionContentActionMap: { [ operation in CollectionOperation ]: Function } = {
-  "add": async (contentType: "headers" | "textareas" | "images" | "all", w: Workspace) => {
+  "add": async (contentType: "headers" | "textareas" | "all", w: Workspace) => {
    const collectionContentAction = addCollectionContentMap[contentType]
    const message = await collectionContentAction(w)
    return { message }
   },
 
-  "update": async () => {
+  "update": async (contentType: "headers" | "textareas", w: Workspace) => {
+    const collectionContentAction = updateCollectionContentMap[contentType]
+    const message = await collectionContentAction(w)
+
+    return { message }
   },
 
-  "remove": async () => {
+  "remove": async (contentType: "headers" | "textareas", w: Workspace) => {
+    const collectionContentAction = removeCollectionContentMap[contentType]
+    const message = await collectionContentAction(w)
+
+    return { message }
   },
 
   "none": () => null
@@ -34,6 +42,8 @@ function generateCollectionMap (cmf: Function[]): { [contentType: string]: (w: W
 }
 
 const addCollectionContentMap = generateCollectionMap([addHeaders, addTextareas, addAllContent])
+const updateCollectionContentMap = generateCollectionMap([updateHeaders, updateTextareas])
+const removeCollectionContentMap = generateCollectionMap([removeHeader, removeTextarea])
 
 async function updateContent (workspace: Workspace, fn: Function): Promise<{ message: any }> {
   const collection = workspace.collections as Collection

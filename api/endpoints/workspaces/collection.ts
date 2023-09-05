@@ -44,7 +44,6 @@ router.delete("/collection/delete", async (req, res) => {
     const { id, cid } = req.query as { id: string, cid: string }
 
     const message = await removeCollection(id, cid)
-    console.log(message)
     res.json({ message })
   } catch (err: any) {
     res.status(err.status).json(err)
@@ -65,7 +64,7 @@ router.get("/collection/retrieve", async (req, res) => {
 // IMAGES part of the collection
 
 router.post("/collection/media/add", update.single("image"), async (req, res) => {
-  try {   
+  try {
     const { id, cid } = req.query as { id: string, cid: string }
     const byteData = req.file!.buffer
     const name = req.body.name as string
@@ -96,11 +95,13 @@ router.post("/collection/media/add", update.single("image"), async (req, res) =>
    }
  })
 
- router.get("/collection/image", async (req, res) => {
+ // image retrieval under dev
+/* router.get("/collection/media/retrieve", async (req, res) => {
   try {
     const { id, cid, mid } = req.query as { id: string, cid: string, mid: string }
-    
+    const bytes = await retrieveMedia({ id, collections: { id: cid } }, mid)
+    res.send(bytes)
   } catch (err: any) {
     res.status(err.status).json(err)
   }
- })
+ })*/

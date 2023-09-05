@@ -19,7 +19,6 @@ export async function createCollection ({ id, collections }: Workspace) {
         },
         media_collection: {
           create: {
-          
           }
         },
         // @ts-ignore
@@ -33,11 +32,10 @@ export async function createCollection ({ id, collections }: Workspace) {
 
 async function updateCollectionContent({ id, collections }: Workspace, data: Object) {
   if (Array.isArray(collections)) throw expectedObjNotArrErr
-    
+
   await client.collection.update({
     where: {
-      // @ts-ignore
-      id: collections.id,
+      id: collections!.id,
       workspace_id: id
     },
     data: data
@@ -45,7 +43,7 @@ async function updateCollectionContent({ id, collections }: Workspace, data: Obj
 }
 
 export async function addAllContent({ id, collections }: Workspace, { headers, textareas }: Content) {
-  const { error, returned } = await queryHandler({ message: "There has been an error attempting to update all of the content fields!" }, async () => {
+  const { error, returned } = await queryHandler({ message: "There has been an error attempting to add all of the content fields!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       headers: {
         createMany: {
@@ -68,7 +66,7 @@ export async function addAllContent({ id, collections }: Workspace, { headers, t
 }
 
 export async function addHeaders ({ id, collections }: Workspace, { headers }: Content) {
-  const { error, returned } = await queryHandler({ message: "Failed to update headers!" }, async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to create headers!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       headers: {
         createMany: {
@@ -86,7 +84,7 @@ export async function addHeaders ({ id, collections }: Workspace, { headers }: C
 }
 
 export async function addTextareas ({ id, collections }: Workspace, { textareas }: Content) {
-  const { error, returned } = await queryHandler({ message: "Failed to update textareas!" }, async () => {
+  const { error, returned } = await queryHandler({ message: "Failed to create textareas!" }, async () => {
     await updateCollectionContent({ id, collections }, {
       textareas: {
         createMany: {
@@ -138,9 +136,38 @@ export async function removeImage ({ id, collections }: Workspace, mediaId: stri
   })
 
   if (error) throw error
-  
+
   return returned
 }
+// under dev
+/*export async function retrieveMedia ({ id, collections }: Workspace, mediaId: string) {
+  const { error, returned } = await queryHandler({ message: "Failed to retrieve media!" }, async () => {
+    const mediaBytes = await client.collection.findUnique({
+      where: {
+        workspace_id: id,
+        // @ts-ignore
+        id: collections.id,
+      },
+
+      include: {
+        media: {
+          where: {
+            id: mediaId
+          },
+          select: {
+            byte: true
+          }
+        }
+      }
+    })
+
+    return mediaBytes!.media
+  })
+
+  if (error) throw error
+
+  return returned
+}*/
 
 export async function removeCollection (workspaceId: string, collectionId: string) {
   const { error, returned } = await queryHandler({ message: "Failed to remove workspace collection!" }, async () => {
@@ -181,6 +208,113 @@ export async function retrieveCollection (workspaceId: string, collectionId: str
         media: true
       }
     })
+  })
+
+  if (error) throw error
+
+  return returned
+}
+// clean up later
+export async function updateHeaders ({ id, collections }: Workspace) {
+  const { error, returned } = await queryHandler({ message: "Failed to update header!" }, async () => {
+    if (Array.isArray(collections)) throw expectedObjNotArrErr
+    // @ts-ignore
+    const header = collections?.content?.headers[0]
+
+    if (!header?.name) throw new Error("Expected a name property and a value!")
+    await updateCollectionContent({ id, collections}, {
+      headers: {
+        update: {
+          where: {
+            id: header?.id
+          },
+          data: {
+            text: header?.name
+          }
+        }
+      }
+    })
+
+    return "Succesfully Updated Headers"
+  })
+
+  if (error) throw error
+
+  return returned
+}
+
+export async function updateTextareas ({ id, collections }: Workspace) {
+  const { error, returned } = await queryHandler({ message: "Failed to update textarea!" }, async () => {
+    if (Array.isArray(collections)) throw expectedObjNotArrErr
+    // @ts-ignore
+    const textarea = collections?.content?.textareas[0]
+
+    if (!textarea?.content) throw new Error("Expected a name property and a value!")
+    await updateCollectionContent({ id, collections}, {
+      textareas: {
+        update: {
+
+          where: {
+            id: textarea?.id
+          },
+
+          data: {
+            text: textarea?.content
+          }
+        }
+      }
+    })
+
+    return "Succesfully Updated Textareas"
+  })
+
+  if (error) throw error
+
+  return returned
+}
+
+export async function removeHeader ({ id, collections }: Workspace) {
+  const { error, returned } = await queryHandler({ message: "Failed to remove header!" }, async () => {
+    if (Array.isArray(collections)) throw expectedObjNotArrErr
+    
+    // @ts-ignore
+    const headers = collections?.content?.headers
+    await updateCollectionContent({ id, collections }, {
+      headers: {
+        deleteMany: {
+          id: {
+            in: headers!.map(h => h.id)
+          }
+        }
+      }
+    })
+
+    return "Succesfully Removed Header!"
+  })
+
+  if (error) throw error
+
+  return returned
+}
+
+export async function removeTextarea ({ id, collections }: Workspace) {
+  const { error, returned } = await queryHandler({ message: "Failed to remove textarea!" }, async () => {
+    if (Array.isArray(collections)) throw expectedObjNotArrErr
+
+    // @ts-ignore
+    const textareas = collections?.content?.textareas
+
+    await updateCollectionContent({ id, collections }, {
+      textareas: {
+        deleteMany: {
+          id: {
+            in: textareas!.map(t => t.id)
+          }
+        }
+      }
+    })
+
+    return "Succesfully Removed Textarea!"
   })
 
   if (error) throw error
