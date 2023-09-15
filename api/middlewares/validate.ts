@@ -64,19 +64,7 @@ export async function validateWorkspaceKey (req: Request, res: Response, next: N
     console.log('Workspace key is valid')
     next()
   }
-  
-
-  // I believe there might be a great fundamental flaw in this, and its the fact that
-  // we are not verifying wether or not a workspace exists with this id
-  // we can retrieve the constraint but shouldnt we be checking if the workspace exists first and foremost?
-
-  // Me 20min later followup
-  // I think im good, since now that i realize all the queries to a specifc workspace are handled on the endpoint level 
-  // at the end of the day these queries will tel wether or not these exist
-  // im deprived of fucking sleep
-  // anyways i still think we should error handle here and check for the workspace record
-  // anyways off to sleep
-  
+ 
   async function validateKeyActionWithBody () {
       if (req.path === "/create") return next()
 

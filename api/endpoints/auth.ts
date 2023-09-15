@@ -17,7 +17,6 @@ router.post("/sign-up", async (req, res) => {
   console.log(username, password)
   bcrypt.hash(password, 12, async (err, hash) => {
     try {
-      // this way i can catch the bcrypt err
       if (err) throw new Error(err.message)
       await createUser(username, hash)
       res.json({ message: `Succesfully created user ${username}` })
@@ -56,7 +55,7 @@ router.get('/sign-out', isAuth, jwtErrorHandler, attachCurrentUser, async (req: 
     res.status(500).json({ error: "Error on sign-out!" })
   }
 })
-// it seems to run the middleware and not
+
 router.delete('/delete', isAuth, jwtErrorHandler, attachCurrentUser, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { data } = req.token
